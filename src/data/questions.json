@@ -1,0 +1,38 @@
+[
+    {
+        "id": 1,
+        "question": "What is the time complexity of searching in a Balanced Binary Search Tree?",
+        "options": ["O(n)", "O(log n)", "O(1)", "O(n²)"],
+        "correct": 1
+    },
+    {
+        "id": 2,
+        "question": "Which HTTP method is considered 'idempotent'?",
+        "options": ["POST", "GET", "PATCH", "PUT"],
+        "correct": 1
+    },
+    {
+        "id": 3,
+        "question": "What does SQL stand for?",
+        "options": ["Simple Query Language", "Structured Quick Language", "Structured Query Language", "Standard Query Logic"],
+        "correct": 2
+    },
+    {
+        "id": 4,
+        "question": "Which Data Structure uses LIFO (Last-In-First-Out)?",
+        "options": ["Queue", "Linked List", "Stack", "Heap"],
+        "correct": 2
+    },
+    {
+        "id": 5,
+        "question": "What is the primary purpose of a 'Mutex'?",
+        "options": ["Data Compression", "Memory Allocation", "Mutual Exclusion", "Network Routing"],
+        "correct": 2
+    },
+    {
+        "id": 6,
+        "question": "In React, which hook is used for side effects?",
+        "options": ["useState", "useMemo", "useCallback", "useEffect"],
+        "correct": 3
+    }
+]

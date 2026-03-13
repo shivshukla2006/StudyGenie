@@ -1,0 +1,121 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Backgrounds */
+    --bg-primary: #F8FAFF;
+    --bg-secondary: #FFFFFF;
+
+    /* Sidebar */
+    --sidebar-bg: #1E3A8A;
+    --sidebar-text: #FFFFFF;
+    --sidebar-active-bg: rgba(59, 130, 246, 0.2);
+    --sidebar-active-border: transparent;
+
+    /* Header */
+    --header-bg: #2563EB;
+    --header-text: #FFFFFF;
+
+    /* Cards */
+    --card-bg: #FFFFFF;
+    --card-border: #E2E8F0;
+    --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+
+    /* Buttons */
+    --btn-primary: #2563EB;
+    --btn-text: #FFFFFF;
+    --btn-hover: #1D4ED8;
+
+    /* Mascot */
+    --mascot-bg: #3B82F6;
+    --mascot-glow: rgba(59, 130, 246, 0.35);
+    --mascot-blur: 20px;
+
+    /* Charts */
+    --chart-primary: #3B82F6;
+    --chart-secondary: #60A5FA;
+    --chart-grid: #E2E8F0;
+
+    /* Text */
+    --text-primary: #1E293B;
+    --text-secondary: #64748B;
+    --text-muted: #94A3B8;
+
+    /* Gamification */
+    --streak-color: #F59E0B;
+    --xp-color: #22C55E;
+
+    /* Chat Bubbles */
+    --chat-user-bg: #2563EB;
+    --chat-user-text: #FFFFFF;
+    --chat-ai-bg: #FFFFFF;
+    --chat-ai-border: #E2E8F0;
+    --chat-ai-text: #1E293B;
+  }
+
+  .dark {
+    /* Backgrounds */
+    --bg-primary: #0F172A;
+    --bg-secondary: #1E293B;
+
+    /* Sidebar */
+    --sidebar-bg: #020617;
+    --sidebar-text: #F8FAFC;
+    --sidebar-active-bg: rgba(59, 130, 246, 0.25);
+    --sidebar-active-border: #3B82F6;
+
+    /* Header */
+    --header-bg: #1E3A8A;
+    --header-text: #F8FAFC;
+
+    /* Cards */
+    --card-bg: #1E293B;
+    --card-border: #334155;
+    --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+
+    /* Buttons */
+    --btn-primary: #3B82F6;
+    --btn-text: #FFFFFF;
+    --btn-hover: #2563EB;
+
+    /* Mascot */
+    --mascot-bg: #3B82F6;
+    --mascot-glow: rgba(59, 130, 246, 0.45);
+    --mascot-blur: 24px;
+
+    /* Charts */
+    --chart-primary: #3B82F6;
+    --chart-secondary: #60A5FA;
+    --chart-grid: #334155;
+
+    /* Text */
+    --text-primary: #F8FAFC;
+    --text-secondary: #CBD5F5;
+    --text-muted: #94A3B8;
+
+    /* Gamification */
+    --streak-color: #F59E0B;
+    --xp-color: #22C55E;
+
+    /* Chat Bubbles */
+    --chat-user-bg: #2563EB;
+    --chat-user-text: #FFFFFF;
+    --chat-ai-bg: #1E293B;
+    --chat-ai-border: #334155;
+    --chat-ai-text: #E2E8F0;
+  }
+}
+
+@layer utilities {
+  .glow-primary {
+    box-shadow: 0 0 15px rgba(168, 85, 247, 0.5);
+  }
+}
+
+body {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}

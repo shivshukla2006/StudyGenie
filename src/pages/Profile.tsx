@@ -1,0 +1,158 @@
+import { User, Settings, Bell, Shield, LogOut, Trophy, Swords, Zap, CheckCircle2, Lock } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { Card } from '../components/Card';
+import { Button } from '../components/Button';
+import { useStore } from '../store/useStore';
+
+export const Profile = () => {
+    const { analytics, achievements, battleLog } = useStore();
+
+    const sections = [
+        { icon: User, label: 'Account Details', desc: 'Manage your personal information' },
+        { icon: Bell, label: 'Notifications', desc: 'Configure alert preferences' },
+        { icon: Shield, label: 'Privacy & Security', desc: 'Secure your StudyGenie data' },
+        { icon: Settings, label: 'App Settings', desc: 'Theme, language, and display options' },
+    ];
+
+    return (
+        <div className="space-y-10 max-w-4xl mx-auto pb-20">
+            {/* Header / User Info */}
+            <div className="flex flex-col sm:flex-row items-center sm:items-start gap-8">
+                <div className="h-32 w-32 rounded-3xl bg-gradient-to-br from-blue-500 to-blue-700 shadow-2xl flex items-center justify-center shrink-0 border-4 border-[var(--card-border)] relative rotate-3">
+                    <span className="text-white font-black text-5xl">S</span>
+                    <motion.div 
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        className="absolute -bottom-3 -right-3 bg-gradient-to-r from-yellow-400 to-orange-500 text-white text-sm font-black px-3 py-1.5 rounded-2xl shadow-lg border-4 border-[#0F172A]"
+                    >
+                        LV. {analytics.level}
+                    </motion.div>
+                </div>
+                
+                <div className="text-center sm:text-left flex-1 w-full pt-2">
+                    <h1 className="text-4xl font-black text-[var(--text-primary)] tracking-tight">Student Name</h1>
+                    <p className="mt-1 font-medium flex items-center justify-center sm:justify-start gap-2" style={{ color: 'var(--text-secondary)' }}>
+                        <Zap size={16} className="text-yellow-500" />
+                        Master Guardian • Member since 2026
+                    </p>
+                    
+                    <div className="mt-6 max-w-md">
+                        <div className="flex justify-between text-xs font-bold uppercase tracking-wider mb-2 text-blue-400">
+                            <span>{analytics.xp} XP</span>
+                            <span>{analytics.xpToNextLevel} XP TOTAL</span>
+                        </div>
+                        <div className="w-full h-3 rounded-full overflow-hidden bg-white/5 border border-white/5 shadow-inner p-0.5">
+                            <motion.div 
+                                initial={{ width: 0 }}
+                                animate={{ width: `${(analytics.xp / analytics.xpToNextLevel) * 100}%` }}
+                                className="h-full bg-gradient-to-r from-blue-500 via-blue-400 to-purple-400 rounded-full" 
+                                transition={{ duration: 1, ease: 'easeOut' }}
+                            />
+                        </div>
+                    </div>
+
+                    <div className="flex gap-3 mt-6 justify-center sm:justify-start">
+                        <Button variant="glow" size="sm">Edit Profile</Button>
+                        <Button variant="secondary" size="sm" className="border-white/5">Settings</Button>
+                    </div>
+                </div>
+            </div>
+
+            {/* Achievements Grid */}
+            <div className="space-y-4">
+                <div className="flex items-center gap-2 px-1">
+                    <Trophy className="text-yellow-500" size={20} />
+                    <h2 className="text-xl font-bold text-[var(--text-primary)]">Achievements</h2>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    {achievements.map((achievement) => (
+                        <Card 
+                            key={achievement.id} 
+                            className={`relative overflow-hidden p-6 border transition-all ${achievement.unlockedAt ? 'border-yellow-500/30 bg-yellow-500/5 shadow-lg shadow-yellow-500/5' : 'border-white/5 opacity-60 grayscale'}`}
+                        >
+                            <div className="text-4xl mb-3">{achievement.icon}</div>
+                            <h3 className="font-bold text-[var(--text-primary)] text-sm">{achievement.title}</h3>
+                            <p className="text-xs mt-1 leading-relaxed" style={{ color: 'var(--text-secondary)' }}>{achievement.description}</p>
+                            
+                            {achievement.unlockedAt ? (
+                                <div className="absolute top-2 right-2 text-yellow-500">
+                                    <CheckCircle2 size={16} fill="currentColor" className="text-yellow-500/20" />
+                                </div>
+                            ) : (
+                                <div className="absolute top-2 right-2 text-white/20">
+                                    <Lock size={14} />
+                                </div>
+                            )}
+                        </Card>
+                    ))}
+                </div>
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-8">
+                {/* Battle Logs */}
+                <div className="space-y-4">
+                    <div className="flex items-center gap-2 px-1">
+                        <Swords className="text-blue-500" size={20} />
+                        <h2 className="text-xl font-bold text-[var(--text-primary)]">Battle History</h2>
+                    </div>
+                    <div className="space-y-3">
+                        {battleLog.length > 0 ? (
+                            battleLog.map((battle) => (
+                                <Card key={battle.id} className="flex items-center justify-between p-4 border-white/5 bg-white/5">
+                                    <div className="flex items-center gap-4">
+                                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold ${battle.outcome === 'victory' ? 'bg-green-500/20 text-green-500' : 'bg-red-500/20 text-red-500'}`}>
+                                            {battle.outcome === 'victory' ? 'W' : 'L'}
+                                        </div>
+                                        <div>
+                                            <p className="text-sm font-bold text-[var(--text-primary)]">vs {battle.opponentName}</p>
+                                            <p className="text-xs text-[var(--text-secondary)]">{new Date(battle.timestamp).toLocaleDateString()}</p>
+                                        </div>
+                                    </div>
+                                    <div className="text-right">
+                                        <p className="text-sm font-black text-[var(--text-primary)]">{battle.score} - {battle.opponentScore}</p>
+                                        <p className={`text-[10px] font-bold uppercase ${battle.outcome === 'victory' ? 'text-green-500' : 'text-red-500'}`}>
+                                            {battle.outcome}
+                                        </p>
+                                    </div>
+                                </Card>
+                            ))
+                        ) : (
+                            <Card className="p-8 text-center border-dashed border-white/10 bg-transparent">
+                                <p className="text-sm text-[var(--text-secondary)]">No battles fought yet. Go to Arena!</p>
+                            </Card>
+                        )}
+                    </div>
+                </div>
+
+                {/* Profile Sections */}
+                <div className="space-y-4">
+                    <div className="flex items-center gap-2 px-1">
+                        <Settings className="text-purple-500" size={20} />
+                        <h2 className="text-xl font-bold text-[var(--text-primary)]">Account</h2>
+                    </div>
+                    <div className="space-y-3">
+                        {sections.map((section, i) => {
+                            const Icon = section.icon;
+                            return (
+                                <Card key={i} className="flex items-center gap-4 cursor-pointer hover:border-[var(--btn-primary)] transition-all bg-white/5 border-white/5">
+                                    <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ backgroundColor: 'var(--sidebar-active-bg)', color: 'var(--btn-primary)' }}>
+                                        <Icon size={20} />
+                                    </div>
+                                    <div className="flex-1">
+                                        <h3 className="text-sm font-bold text-[var(--text-primary)]">{section.label}</h3>
+                                        <p className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>{section.desc}</p>
+                                    </div>
+                                </Card>
+                            );
+                        })}
+
+                        <Button variant="ghost" className="w-full mt-4 text-red-500 hover:bg-red-500/10">
+                            <LogOut size={18} className="mr-2" />
+                            Sign Out
+                        </Button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
