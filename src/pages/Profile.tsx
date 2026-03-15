@@ -1,17 +1,41 @@
-import { User, Settings, Bell, Shield, LogOut, Trophy, Swords, Zap, CheckCircle2, Lock } from 'lucide-react';
+import { User, Settings, Bell, Shield, LogOut, Trophy, Swords, Zap, CheckCircle2, Lock, Moon, Sun } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Card } from '../components/Card';
 import { Button } from '../components/Button';
 import { useStore } from '../store/useStore';
+import { supabase } from '../lib/supabase';
+import { useState } from 'react';
 
 export const Profile = () => {
-    const { analytics, achievements, battleLog } = useStore();
+    const { analytics, achievements, battleLog, savedNotes, messages } = useStore();
+    const [isDarkMode, setIsDarkMode] = useState(true);
+
+    const toggleTheme = () => {
+        setIsDarkMode(!isDarkMode);
+        document.documentElement.classList.toggle('light-mode');
+    };
+
+    const handleSignOut = async () => {
+        await supabase.auth.signOut();
+        window.location.reload();
+    };
 
     const sections = [
-        { icon: User, label: 'Account Details', desc: 'Manage your personal information' },
+        { 
+            icon: isDarkMode ? Moon : Sun, 
+            label: 'Appearance', 
+            desc: `Switch to ${isDarkMode ? 'Light' : 'Dark'} mode`,
+            action: toggleTheme
+        },
         { icon: Bell, label: 'Notifications', desc: 'Configure alert preferences' },
         { icon: Shield, label: 'Privacy & Security', desc: 'Secure your StudyGenie data' },
-        { icon: Settings, label: 'App Settings', desc: 'Theme, language, and display options' },
+        { icon: Settings, label: 'Account Settings', desc: 'Manage your profile and data' },
+    ];
+
+    const stats = [
+        { label: 'Battles', value: battleLog.length },
+        { label: 'Saved Notes', value: savedNotes.length },
+        { label: 'Chat History', value: messages.length },
     ];
 
     return (
@@ -30,7 +54,7 @@ export const Profile = () => {
                 </div>
                 
                 <div className="text-center sm:text-left flex-1 w-full pt-2">
-                    <h1 className="text-4xl font-black text-[var(--text-primary)] tracking-tight">Student Name</h1>
+                    <h1 className="text-4xl font-black text-[var(--text-primary)] tracking-tight">Scholar Explorer</h1>
                     <p className="mt-1 font-medium flex items-center justify-center sm:justify-start gap-2" style={{ color: 'var(--text-secondary)' }}>
                         <Zap size={16} className="text-yellow-500" />
                         Master Guardian • Member since 2026
@@ -51,9 +75,13 @@ export const Profile = () => {
                         </div>
                     </div>
 
-                    <div className="flex gap-3 mt-6 justify-center sm:justify-start">
-                        <Button variant="glow" size="sm">Edit Profile</Button>
-                        <Button variant="secondary" size="sm" className="border-white/5">Settings</Button>
+                    <div className="grid grid-cols-3 gap-4 mt-8">
+                        {stats.map((stat, i) => (
+                            <div key={i} className="text-center sm:text-left">
+                                <p className="text-2xl font-black text-[var(--text-primary)]">{stat.value}</p>
+                                <p className="text-[10px] font-bold uppercase tracking-widest text-[var(--text-secondary)] opacity-60">{stat.label}</p>
+                            </div>
+                        ))}
                     </div>
                 </div>
             </div>
@@ -97,7 +125,7 @@ export const Profile = () => {
                     </div>
                     <div className="space-y-3">
                         {battleLog.length > 0 ? (
-                            battleLog.map((battle) => (
+                            battleLog.slice(0, 5).map((battle) => (
                                 <Card key={battle.id} className="flex items-center justify-between p-4 border-white/5 bg-white/5">
                                     <div className="flex items-center gap-4">
                                         <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold ${battle.outcome === 'victory' ? 'bg-green-500/20 text-green-500' : 'bg-red-500/20 text-red-500'}`}>
@@ -128,13 +156,17 @@ export const Profile = () => {
                 <div className="space-y-4">
                     <div className="flex items-center gap-2 px-1">
                         <Settings className="text-purple-500" size={20} />
-                        <h2 className="text-xl font-bold text-[var(--text-primary)]">Account</h2>
+                        <h2 className="text-xl font-bold text-[var(--text-primary)]">Settings</h2>
                     </div>
                     <div className="space-y-3">
                         {sections.map((section, i) => {
                             const Icon = section.icon;
                             return (
-                                <Card key={i} className="flex items-center gap-4 cursor-pointer hover:border-[var(--btn-primary)] transition-all bg-white/5 border-white/5">
+                                <Card 
+                                    key={i} 
+                                    className="flex items-center gap-4 cursor-pointer hover:border-[var(--btn-primary)] transition-all bg-white/5 border-white/5"
+                                    onClick={section.action}
+                                >
                                     <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ backgroundColor: 'var(--sidebar-active-bg)', color: 'var(--btn-primary)' }}>
                                         <Icon size={20} />
                                     </div>
@@ -146,7 +178,11 @@ export const Profile = () => {
                             );
                         })}
 
-                        <Button variant="ghost" className="w-full mt-4 text-red-500 hover:bg-red-500/10">
+                        <Button 
+                            variant="ghost" 
+                            className="w-full mt-4 text-red-500 hover:bg-red-500/10 h-12"
+                            onClick={handleSignOut}
+                        >
                             <LogOut size={18} className="mr-2" />
                             Sign Out
                         </Button>

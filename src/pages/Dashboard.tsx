@@ -2,9 +2,34 @@ import { Card } from '../components/Card';
 import { Button } from '../components/Button';
 import { GenieMascot } from '../components/GenieMascot';
 import { useStore } from '../store/useStore';
+import { useState, useEffect } from 'react';
+import { supabase } from '../lib/supabase';
 
 export const Dashboard = () => {
     const analytics = useStore(state => state.analytics);
+    const [weakTopics, setWeakTopics] = useState<Array<{ topic: string; accuracy: number; attempts_count: number }>>([]);
+
+    useEffect(() => {
+        const fetchWeakTopics = async () => {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (user) {
+                try {
+                    const { data: { session } } = await supabase.auth.getSession();
+                    const res = await fetch(`http://localhost:8000/analytics/weak-topics`, {
+                        headers: {
+                            'Authorization': `Bearer ${session?.access_token}`
+                        }
+                    });
+                    const data = await res.json();
+                    setWeakTopics(data.weak_topics || []);
+                } catch (err) {
+                    console.error("Failed to fetch analytics:", err);
+                }
+            }
+        };
+        fetchWeakTopics();
+    }, []);
+
     return (
         <div className="space-y-6">
             <div className="flex items-center justify-between">
@@ -49,6 +74,29 @@ export const Dashboard = () => {
                     <Button variant="primary" className="w-full">Open Chat</Button>
                 </Card>
             </div>
+
+            {weakTopics.length > 0 && (
+                <div className="mt-8 animate-in fade-in slide-in-from-bottom-3 duration-500">
+                    <h2 className="text-xl font-black text-[var(--text-primary)] mb-4 flex items-center gap-2">
+                        <span className="w-2.5 h-2.5 rounded-full bg-red-400 animate-pulse"></span>
+                        Topics Needing Focus
+                    </h2>
+                    <div className="grid gap-4 sm:grid-cols-2">
+                        {weakTopics.map((item, i) => (
+                            <Card key={i} className="flex items-center justify-between p-4 border-red-500/10 hover:border-red-500/30 transition-all bg-red-500/5 group cursor-pointer">
+                                <div>
+                                    <h4 className="font-bold text-[var(--text-primary)] text-sm group-hover:text-red-400 transition-colors">{item.topic}</h4>
+                                    <p className="text-xs text-[var(--text-secondary)] mt-1">{item.attempts_count} quiz attempts</p>
+                                </div>
+                                <div className="text-right">
+                                    <span className="text-base font-black text-red-400">{item.accuracy}%</span>
+                                    <p className="text-[10px] text-red-500/50 uppercase font-black tracking-wider">Accuracy</p>
+                                </div>
+                            </Card>
+                        ))}
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

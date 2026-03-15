@@ -1,9 +1,10 @@
-import { useState, useEffect, useMemo } from 'react';
-import { Swords, Timer, Zap, Trophy, Shield, AlertCircle } from 'lucide-react';
+import { useState, useEffect, useMemo, useRef } from 'react';
+import { Swords, Timer, Zap, Trophy, Shield, AlertCircle, User, Check, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Card } from '../components/Card';
 import { Button } from '../components/Button';
 import { useStore } from '../store/useStore';
+import { supabase } from '../lib/supabase';
 import questionsData from '../data/questions.json';
 
 export const StudyBattles = () => {
@@ -14,6 +15,148 @@ export const StudyBattles = () => {
     const [opponentScore, setOpponentScore] = useState(0);
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
     const [shake, setShake] = useState(false);
+
+    // Live Multiplayer State
+    const [currentUser, setCurrentUser] = useState<{ id: string; username: string } | null>(null);
+    const [onlineUsers, setOnlineUsers] = useState<any[]>([]);
+    const [incomingChallenge, setIncomingChallenge] = useState<any>(null);
+    const [activeChannel, setActiveChannel] = useState<any>(null);
+    const [opponentName, setOpponentName] = useState('Alex99');
+    const socketRef = useRef<WebSocket | null>(null);
+
+    // FastAPI WebSocket for high-frequency score sync
+    useEffect(() => {
+        if (battleState === 'playing' && currentUser) {
+            const roomId = [currentUser.id, opponentName].sort().join('-');
+            const ws = new WebSocket(`ws://localhost:8000/ws/battle/${roomId}`);
+            socketRef.current = ws;
+
+            ws.onmessage = (event) => {
+                try {
+                    const data = JSON.parse(event.data);
+                    if (data.type === 'score_update' && data.userId !== currentUser.id) {
+                        setOpponentScore(data.score);
+                    }
+                } catch (e) {
+                    console.error('WS Data parsing failed:', e);
+                }
+            };
+
+            return () => {
+                ws.close();
+            };
+        }
+    }, [battleState, currentUser, opponentName]);
+
+    // Fetch user details
+    useEffect(() => {
+        const fetchUser = async () => {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (user) {
+                const { data: profile } = await supabase
+                    .from('profiles')
+                    .select('username')
+                    .eq('id', user.id)
+                    .single();
+                
+                setCurrentUser({
+                    id: user.id,
+                    username: profile?.username || user.email?.split('@')[0] || 'Player'
+                });
+            }
+        };
+        fetchUser();
+    }, []);
+
+    // Realtime Coordination
+    useEffect(() => {
+        if (!currentUser) return;
+
+        const channel = supabase.channel('battle-lobby', {
+            config: { presence: { key: currentUser.id } }
+        });
+
+        channel
+            .on('presence', { event: 'sync' }, () => {
+                const state = channel.presenceState();
+                const users = Object.values(state).flat().map((p: any) => p.user);
+                setOnlineUsers(users.filter(u => u.id !== currentUser.id));
+            })
+            .on('broadcast', { event: 'challenge' }, (payload: any) => {
+                if (payload.targetId === currentUser.id) {
+                    setIncomingChallenge(payload);
+                }
+            })
+            .on('broadcast', { event: 'challenge_accepted' }, (payload: any) => {
+                if (payload.targetId === currentUser.id || payload.challengerId === currentUser.id) {
+                    setOpponentName(payload.challengerId === currentUser.id ? payload.targetName : payload.challengerName);
+                    setBattleState('countdown');
+                    setScore(0);
+                    setOpponentScore(0);
+                }
+            })
+            .on('broadcast', { event: 'score_update' }, (payload: any) => {
+                if (payload.userId !== currentUser.id) {
+                    setOpponentScore(payload.score);
+                }
+            })
+            .subscribe(async (status) => {
+                const userToTrack = currentUser;
+                if (status === 'SUBSCRIBED' && userToTrack) {
+                    await channel.track({ user: { id: userToTrack.id, username: userToTrack.username } });
+                }
+            });
+
+        setActiveChannel(channel);
+
+        return () => {
+            channel.unsubscribe();
+        };
+    }, [currentUser]);
+
+    const handleChallenge = (targetUser: any) => {
+        if (!activeChannel || !currentUser) return;
+        
+        activeChannel.send({
+            type: 'broadcast',
+            event: 'challenge',
+            payload: {
+                challengerId: currentUser.id,
+                challengerName: currentUser.username,
+                targetId: targetUser.id
+            }
+        });
+        alert(`Challenge sent to ${targetUser.username}!`);
+    };
+
+    const handleAcceptChallenge = () => {
+        if (!activeChannel || !incomingChallenge || !currentUser) return;
+
+        activeChannel.send({
+            type: 'broadcast',
+            event: 'challenge_accepted',
+            payload: {
+                challengerId: incomingChallenge.challengerId,
+                challengerName: incomingChallenge.challengerName,
+                targetId: currentUser.id,
+                targetName: currentUser.username
+            }
+        });
+
+        setOpponentName(incomingChallenge.challengerName);
+        setBattleState('countdown');
+        setIncomingChallenge(null);
+    };
+
+    const broadcastScore = (newScore: number) => {
+        if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN && currentUser) {
+            socketRef.current.send(JSON.stringify({
+                type: 'score_update',
+                userId: currentUser.id,
+                score: newScore
+            }));
+        }
+    };
 
     // Filter questions or just use the pool
     const battleQuestions = useMemo(() => {
@@ -26,10 +169,7 @@ export const StudyBattles = () => {
         if (battleState === 'playing' && timeLeft > 0) {
             timer = setInterval(() => {
                 setTimeLeft(prev => prev - 1);
-                // Simulate opponent scoring randomly
-                if (Math.random() > 0.7) {
-                    setOpponentScore(prev => prev + 25);
-                }
+                // Simulation fallback disabled if active channel is set
             }, 1000);
         } else if (timeLeft === 0 && battleState === 'playing') {
             handleBattleEnd();
@@ -47,7 +187,7 @@ export const StudyBattles = () => {
             outcome,
             score,
             opponentScore,
-            opponentName: 'Alex99'
+            opponentName: opponentName
         });
     };
 
@@ -72,14 +212,15 @@ export const StudyBattles = () => {
         const isCorrect = optionIndex === battleQuestions[currentQuestionIndex].correct;
         
         if (isCorrect) {
-            setScore(prev => prev + 25);
+            const newScore = score + 25;
+            setScore(newScore);
+            broadcastScore(newScore);
             if (currentQuestionIndex < battleQuestions.length - 1) {
                 setCurrentQuestionIndex(prev => prev + 1);
             } else {
                 handleBattleEnd();
             }
         } else {
-            // Shake effect on wrong answer
             setShake(true);
             setTimeout(() => setShake(false), 500);
         }
@@ -109,7 +250,7 @@ export const StudyBattles = () => {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -20 }}
-                        className="grid md:grid-cols-2 gap-6 mt-8"
+                        className="grid md:grid-cols-3 gap-6 mt-8"
                     >
                         <Card className="flex flex-col items-center text-center p-8 bg-gradient-to-br from-[var(--card-bg)] to-blue-500/10 border-blue-500/20">
                             <div className="w-16 h-16 rounded-2xl bg-blue-500/20 flex items-center justify-center mb-4 text-blue-500">
@@ -128,6 +269,25 @@ export const StudyBattles = () => {
                             <p style={{ color: 'var(--text-secondary)' }} className="mb-6 text-sm">Unlock at Level 10. Face the ultimate AI challenge for legendary rewards.</p>
                             <Button variant="secondary" className="w-full" disabled>Locked (Lvl {analytics.level}/10)</Button>
                         </Card>
+
+                        <Card className="p-6 border-blue-500/20">
+                            <h3 className="text-xl font-bold text-[var(--text-primary)] mb-4 flex items-center gap-2">
+                                <User size={20} className="text-blue-500" />
+                                Online Players
+                            </h3>
+                            <div className="space-y-3 max-h-[220px] overflow-y-auto">
+                                {onlineUsers.length === 0 ? (
+                                    <p style={{ color: 'var(--text-secondary)' }} className="text-sm text-center py-4">No other players online</p>
+                                ) : (
+                                    onlineUsers.map((u, idx) => (
+                                        <div key={idx} className="flex justify-between items-center p-3 rounded-xl bg-white/5 border border-white/5">
+                                            <span className="font-medium text-[var(--text-primary)]">{u.username}</span>
+                                            <Button variant="glow" size="sm" onClick={() => handleChallenge(u)} className="h-8 px-3 text-xs">Fight</Button>
+                                        </div>
+                                    ))
+                                )}
+                            </div>
+                        </Card>
                     </motion.div>
                 )}
 
@@ -139,7 +299,7 @@ export const StudyBattles = () => {
                         className="py-32"
                     >
                         <Card className="flex flex-col items-center justify-center p-12 border-blue-500/50 bg-blue-500/5">
-                            <h2 className="text-2xl font-bold text-[var(--text-secondary)] mb-4">Opponent Found: <span className="text-blue-500">Alex99</span></h2>
+                            <h2 className="text-2xl font-bold text-[var(--text-secondary)] mb-4">Opponent Found: <span className="text-blue-500">{opponentName}</span></h2>
                             <motion.div 
                                 animate={{ scale: [1, 1.2, 1], rotate: [0, 5, -5, 0] }}
                                 transition={{ repeat: Infinity, duration: 1 }}
@@ -174,7 +334,7 @@ export const StudyBattles = () => {
                                 </p>
                             </div>
                             <div className="text-center w-24">
-                                <p className="text-[10px] font-bold text-red-400 uppercase tracking-widest">Alex99</p>
+                                <p className="text-[10px] font-bold text-red-400 uppercase tracking-widest">{opponentName}</p>
                                 <p className="text-3xl font-black text-red-500">{opponentScore}</p>
                             </div>
                         </div>
@@ -283,7 +443,36 @@ export const StudyBattles = () => {
                         </Card>
                     </motion.div>
                 )}
-            </AnimatePresence>
-        </div>
+                {/* Challenge Modal */}
+                <AnimatePresence>
+                    {incomingChallenge && (
+                        <motion.div 
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+                        >
+                            <Card className="flex flex-col items-center text-center p-8 max-w-sm border-blue-500/30">
+                                <div className="w-16 h-16 rounded-full bg-blue-500/20 flex items-center justify-center mb-4 text-blue-500 animate-bounce">
+                                    <Swords size={32} />
+                                </div>
+                                <h3 className="text-xl font-bold text-[var(--text-primary)] mb-2">Battle Challenge!</h3>
+                                <p style={{ color: 'var(--text-secondary)' }} className="mb-6 text-sm">
+                                    <span className="text-blue-500 font-bold">{incomingChallenge.challengerName}</span> wants to battle you.
+                                </p>
+                                <div className="flex gap-4 w-full">
+                                    <Button variant="primary" className="flex-1 flex items-center justify-center gap-1" onClick={handleAcceptChallenge}>
+                                        <Check size={18} /> Accept
+                                    </Button>
+                                    <Button variant="secondary" className="flex-1 flex items-center justify-center gap-1" onClick={() => setIncomingChallenge(null)}>
+                                        <X size={18} /> Decline
+                                    </Button>
+                                </div>
+                            </Card>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+                </AnimatePresence>
+            </div>
     );
 };

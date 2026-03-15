@@ -1,10 +1,11 @@
-import { Home, MessageSquare, BookOpen, BarChart2, User, Swords, Settings } from 'lucide-react';
+import { Home, MessageSquare, BookOpen, BarChart2, User, Swords, Settings, FileText } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
 
 export const Sidebar = () => {
     const mainNavItems = [
         { id: 'dashboard', icon: Home, label: 'Dashboard', path: '/dashboard' },
         { id: 'chat', icon: MessageSquare, label: 'Genie Chat', path: '/chat' },
+        { id: 'notes', icon: FileText, label: 'Smart Notes', path: '/notes' },
         { id: 'quizzes', icon: BookOpen, label: 'Quizzes', path: '/quizzes' },
         { id: 'battles', icon: Swords, label: 'Study Battles', path: '/battles' },
         { id: 'analytics', icon: BarChart2, label: 'Analytics', path: '/analytics' },

@@ -1,0 +1,5 @@
+Status Code: 200
+
+AI Response:
+========================================
+Error connecting to server: 'charmap' codec can't encode characters in position 99-100: character maps to <undefined>

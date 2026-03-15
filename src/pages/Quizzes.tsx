@@ -1,7 +1,8 @@
-import { BookOpen, Star, Clock } from 'lucide-react';
+import { BookOpen, Star, Clock, Sparkles, Loader2 } from 'lucide-react';
 import { Card } from '../components/Card';
 import { Button } from '../components/Button';
-import { useStore } from '../store/useStore';
+import { Input } from '../components/Input';
+import { useStore, type QuizTopic } from '../store/useStore';
 import { useState } from 'react';
 import { Modal } from '../components/Modal';
 
@@ -11,32 +12,88 @@ export const Quizzes = () => {
     const updateAnalytics = useStore(state => state.updateAnalytics);
     const analytics = useStore(state => state.analytics);
 
-    const [activeTopicId, setActiveTopicId] = useState<number | null>(null);
-    const [currentQIndex, setCurrentQIndex] = useState(0);
+    const [isGenerating, setIsGenerating] = useState(false);
+    const [showGenieModal, setShowGenieModal] = useState(false);
+    const [genieTopic, setGenieTopic] = useState('');
+    const addQuizTopic = useStore(state => state.addQuizTopic);
 
-    const handleStart = (topicId: number) => {
-        setActiveTopicId(topicId);
+    const [activeTopic, setActiveTopic] = useState<QuizTopic | null>(null);
+    const [currentQIndex, setCurrentQIndex] = useState(0);
+    const [selectedOption, setSelectedOption] = useState<number | null>(null);
+    const [isAnswered, setIsAnswered] = useState(false);
+
+    const handleStart = (topic: QuizTopic) => {
+        setActiveTopic(topic);
         setCurrentQIndex(0);
+        setSelectedOption(null);
+        setIsAnswered(false);
     };
 
-    const handleAnswerSelection = () => {
-        if (currentQIndex < 2) {
-            setCurrentQIndex(prev => prev + 1);
-        } else {
-            // Finished a short 3-question session
-            if (activeTopicId !== null) {
-                updateQuizProgress(activeTopicId, 3);
-                updateAnalytics({ testsTaken: analytics.testsTaken + 1 });
-            }
-            setActiveTopicId(null);
+    const handleGenerateAIQuiz = async () => {
+        if (!genieTopic.trim()) return;
+        setIsGenerating(true);
+        try {
+            const response = await fetch('http://localhost:8000/generate-quiz', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ topic: genieTopic, count: 5 })
+            });
+
+            if (!response.ok) throw new Error('Genie is tired!');
+            
+            const quizData = await response.json();
+            
+            addQuizTopic({
+                name: quizData.title,
+                total: quizData.questions.length,
+                time: `${quizData.questions.length * 2}m`,
+                questions: quizData.questions
+            });
+            
+            setShowGenieModal(false);
+            setGenieTopic('');
+        } catch (err) {
+            console.error('Genie Quiz Error:', err);
+            alert("The Genie's magic failed! Check if the backend is running. ✨");
+        } finally {
+            setIsGenerating(false);
         }
+    };
+
+    const handleAnswerSelection = (idx: number) => {
+        if (isAnswered) return;
+        setSelectedOption(idx);
+        setIsAnswered(true);
+
+        // Note: score check was here
+
+        setTimeout(() => {
+            if (activeTopic) {
+                if (currentQIndex < (activeTopic.questions?.length || 3) - 1) {
+                    setCurrentQIndex(prev => prev + 1);
+                    setSelectedOption(null);
+                    setIsAnswered(false);
+                } else {
+                    // Quiz Finished
+                    updateQuizProgress(activeTopic.id, activeTopic.total);
+                    updateAnalytics({ testsTaken: analytics.testsTaken + 1 });
+                    setActiveTopic(null);
+                }
+            }
+        }, 1500);
     };
 
     return (
         <div className="space-y-6">
-            <div className="p-6 rounded-2xl shadow-md border" style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--card-border)' }}>
-                <h1 className="text-3xl font-bold text-[var(--text-primary)]">Practice Quizzes</h1>
-                <p className="font-medium mt-1" style={{ color: 'var(--text-secondary)' }}>Master your subjects, one question at a time.</p>
+            <div className="p-6 rounded-2xl shadow-md border flex justify-between items-center" style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--card-border)' }}>
+                <div>
+                    <h1 className="text-3xl font-bold text-[var(--text-primary)]">Practice Quizzes</h1>
+                    <p className="font-medium mt-1" style={{ color: 'var(--text-secondary)' }}>Master your subjects, one question at a time.</p>
+                </div>
+                <Button variant="glow" onClick={() => setShowGenieModal(true)}>
+                    <Sparkles className="w-5 h-5 mr-2" />
+                    Genie Magic
+                </Button>
             </div>
 
             <div className="grid gap-4 md:grid-cols-2">
@@ -69,7 +126,7 @@ export const Quizzes = () => {
                             <Button 
                                 variant={topic.completed === 0 ? 'secondary' : 'glow'} 
                                 className="w-full"
-                                onClick={() => handleStart(topic.id)}
+                                onClick={() => handleStart(topic)}
                             >
                                 {topic.completed === 0 ? 'Start Now' : 'Continue'}
                             </Button>
@@ -78,42 +135,101 @@ export const Quizzes = () => {
                 ))}
             </div>
 
+            {/* Genie Magic Modal */}
+            <Modal isOpen={showGenieModal} onClose={() => setShowGenieModal(false)} title="Genie AI Generator">
+                <div className="space-y-4">
+                    <p className="text-[var(--text-secondary)]">What subject should the Genie create a quiz for today?</p>
+                    <Input 
+                        placeholder="e.g. Ancient Rome, Photosynthesis, React Hooks..." 
+                        value={genieTopic}
+                        onChange={(e) => setGenieTopic(e.target.value)}
+                        onKeyDown={(e) => e.key === 'Enter' && handleGenerateAIQuiz()}
+                    />
+                    <Button 
+                        variant="primary" 
+                        className="w-full" 
+                        onClick={handleGenerateAIQuiz}
+                        disabled={isGenerating || !genieTopic.trim()}
+                    >
+                        {isGenerating ? (
+                            <>
+                                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                Working Magic...
+                            </>
+                        ) : 'Generate Quiz ✨'}
+                    </Button>
+                </div>
+            </Modal>
+
+            {/* Quiz Player Modal */}
             <Modal 
-                isOpen={activeTopicId !== null} 
-                onClose={() => setActiveTopicId(null)}
-                title={topics.find(t => t.id === activeTopicId)?.name || 'Quiz'}
+                isOpen={activeTopic !== null} 
+                onClose={() => setActiveTopic(null)}
+                title={activeTopic?.name || 'Quiz'}
             >
                 <div className="space-y-6">
-                    <div>
-                        <div className="flex justify-between items-center mb-2">
-                            <span className="text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>Question {currentQIndex + 1} of 3</span>
-                        </div>
-                        <div className="w-full h-2 rounded-full mb-6" style={{ backgroundColor: 'var(--sidebar-active-bg)' }}>
-                            <div
-                                className="h-full rounded-full transition-all duration-300"
-                                style={{ width: `${((currentQIndex) / 3) * 100}%`, backgroundColor: 'var(--btn-primary)' }}
-                            />
-                        </div>
+                    {activeTopic && (
+                        <div>
+                            <div className="flex justify-between items-center mb-2">
+                                <span className="text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>
+                                    Question {currentQIndex + 1} of {activeTopic.questions?.length || 3}
+                                </span>
+                            </div>
+                            <div className="w-full h-2 rounded-full mb-6" style={{ backgroundColor: 'var(--sidebar-active-bg)' }}>
+                                <div
+                                    className="h-full rounded-full transition-all duration-300"
+                                    style={{ 
+                                        width: `${((currentQIndex) / (activeTopic.questions?.length || 3)) * 100}%`, 
+                                        backgroundColor: 'var(--btn-primary)' 
+                                    }}
+                                />
+                            </div>
 
-                        <h3 className="text-xl font-semibold mb-6 text-[var(--text-primary)]">
-                            {currentQIndex === 0 && "Which data structure uses LIFO?"}
-                            {currentQIndex === 1 && "What is the time complexity of binary search?"}
-                            {currentQIndex === 2 && "Which sorting algorithm is the fastest on average?"}
-                        </h3>
+                            <h3 className="text-xl font-semibold mb-6 text-[var(--text-primary)]">
+                                {activeTopic.questions?.[currentQIndex]?.question || "Loading question..."}
+                            </h3>
 
-                        <div className="space-y-3">
-                            {[1, 2, 3, 4].map((opt) => (
-                                <button
-                                    key={opt}
-                                    onClick={handleAnswerSelection}
-                                    className="w-full p-4 text-left rounded-xl border hover:border-[var(--btn-primary)] transition-all font-medium text-[var(--text-primary)]"
-                                    style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--card-border)' }}
-                                >
-                                    Option {opt} - Simulated Answer
-                                </button>
-                            ))}
+                            <div className="space-y-3">
+                                {(activeTopic.questions?.[currentQIndex]?.options || [1, 2, 3, 4]).map((opt, idx) => {
+                                    const isCorrect = idx === activeTopic.questions?.[currentQIndex]?.correctAnswer;
+                                    const isSelected = selectedOption === idx;
+                                    
+                                    let borderColor = 'var(--card-border)';
+                                    let bgColor = 'var(--card-bg)';
+                                    
+                                    if (isAnswered) {
+                                        if (isCorrect) {
+                                            borderColor = '#22C55E';
+                                            bgColor = 'rgba(34, 197, 94, 0.1)';
+                                        } else if (isSelected) {
+                                            borderColor = '#EF4444';
+                                            bgColor = 'rgba(239, 68, 68, 0.1)';
+                                        }
+                                    } else if (isSelected) {
+                                        borderColor = 'var(--btn-primary)';
+                                    }
+
+                                    return (
+                                        <button
+                                            key={idx}
+                                            onClick={() => handleAnswerSelection(idx)}
+                                            disabled={isAnswered}
+                                            className="w-full p-4 text-left rounded-xl border transition-all font-medium text-[var(--text-primary)]"
+                                            style={{ backgroundColor: bgColor, borderColor: borderColor }}
+                                        >
+                                            {typeof opt === 'string' ? opt : `Option ${opt}`}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+
+                            {isAnswered && activeTopic.questions?.[currentQIndex]?.explanation && (
+                                <div className="mt-4 p-4 rounded-xl border bg-blue-500/5 border-blue-500/20 text-sm italic" style={{ color: 'var(--text-secondary)' }}>
+                                    <strong>Explanation:</strong> {activeTopic.questions[currentQIndex].explanation}
+                                </div>
+                            )}
                         </div>
-                    </div>
+                    )}
                 </div>
             </Modal>
         </div>

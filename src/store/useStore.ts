@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { supabase } from '../lib/supabase';
 
 export interface Message {
     id: string;
@@ -7,37 +8,43 @@ export interface Message {
     timestamp: number;
 }
 
+export interface Question {
+    question: string;
+    options: string[];
+    correctAnswer: number;
+    explanation: string;
+}
+
+export interface ProcessedNote {
+    id?: string;
+    title: string;
+    summary: string;
+    flashcards: any[];
+    concepts: string[];
+    created_at?: string;
+}
+
 export interface QuizTopic {
     id: number;
     name: string;
     total: number;
     completed: number;
     time: string;
-}
-
-export interface Achievement {
-    id: string;
-    title: string;
-    description: string;
-    icon: string;
-    unlockedAt?: number;
-}
-
-export interface BattleRecord {
-    id: string;
-    outcome: 'victory' | 'defeat';
-    score: number;
-    opponentScore: number;
-    opponentName: string;
-    timestamp: number;
+    questions?: Question[];
 }
 
 interface AppState {
     messages: Message[];
     addMessage: (message: Omit<Message, 'id' | 'timestamp'>) => void;
+    clearMessages: () => void;
     
     quizTopics: QuizTopic[];
     updateQuizProgress: (topicId: number, questionsCompleted: number) => void;
+    addQuizTopic: (topic: Omit<QuizTopic, 'id' | 'completed'>) => void;
+    
+    savedNotes: ProcessedNote[];
+    saveNote: (note: Omit<ProcessedNote, 'id' | 'created_at'>) => Promise<void>;
+    deleteNote: (id: string) => Promise<void>;
     
     analytics: {
         streak: number;
@@ -59,9 +66,30 @@ interface AppState {
     
     showLevelUpModal: boolean;
     setShowLevelUpModal: (show: boolean) => void;
+
+    // Cloud Sync Actions
+    loadProfile: (userId: string) => Promise<void>;
+    syncProgress: () => Promise<void>;
 }
 
-export const useStore = create<AppState>((set) => ({
+export interface Achievement {
+    id: string;
+    title: string;
+    description: string;
+    icon: string;
+    unlockedAt?: number;
+}
+
+export interface BattleRecord {
+    id: string;
+    outcome: 'victory' | 'defeat';
+    score: number;
+    opponentScore: number;
+    opponentName: string;
+    timestamp: number;
+}
+
+export const useStore = create<AppState>((set, get) => ({
     messages: [
         {
             id: 'welcome-msg',
@@ -70,89 +98,249 @@ export const useStore = create<AppState>((set) => ({
             timestamp: Date.now()
         }
     ],
-    addMessage: (msg) => set((state) => ({
-        messages: [
-            ...state.messages,
-            { ...msg, id: Math.random().toString(36).substring(7), timestamp: Date.now() }
-        ]
-    })),
+    addMessage: (msg) => {
+        set((state) => ({
+            messages: [
+                ...state.messages,
+                { ...msg, id: Math.random().toString(36).substring(7), timestamp: Date.now() }
+            ]
+        }));
+    },
+
+    clearMessages: () => {
+        set({
+            messages: [
+                {
+                    id: 'welcome-msg',
+                    role: 'ai',
+                    content: "Hi there! I'm your StudyGenie. How can I help you today?",
+                    timestamp: Date.now()
+                }
+            ]
+        });
+    },
 
     quizTopics: [
         { id: 1, name: 'Data Structures', total: 15, completed: 5, time: '20m' },
         { id: 2, name: 'Linear Algebra', total: 10, completed: 8, time: '15m' },
         { id: 3, name: 'Biology - Genetics', total: 20, completed: 0, time: '30m' },
     ],
-    updateQuizProgress: (topicId, questionsCompleted) => set((state) => {
+    updateQuizProgress: (topicId, questionsCompleted) => {
         const xpGained = questionsCompleted * 10;
-        const newQuizTopics = state.quizTopics.map(topic => 
-            topic.id === topicId 
-                ? { ...topic, completed: Math.min(topic.completed + questionsCompleted, topic.total) } 
-                : topic
-        );
-        
-        // Use functional state update to trigger addXP logic properly
-        state.addXP(xpGained);
+        set((state) => {
+            const newQuizTopics = state.quizTopics.map(topic => 
+                topic.id === topicId 
+                    ? { ...topic, completed: Math.min(topic.completed + questionsCompleted, topic.total) } 
+                    : topic
+            );
+            return { quizTopics: newQuizTopics };
+        });
+        get().addXP(xpGained);
+    },
+    addQuizTopic: (topic) => set((state) => ({
+        quizTopics: [
+            ...state.quizTopics,
+            { ...topic, id: Date.now(), completed: 0 }
+        ]
+    })),
 
-        return {
-            quizTopics: newQuizTopics,
-        };
-    }),
+    savedNotes: [],
+    saveNote: async (note) => {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+        
+        const { data, error } = await supabase
+            .from('processed_notes')
+            .insert({ ...note, user_id: user.id })
+            .select()
+            .single();
+            
+        if (data && !error) {
+            set((state) => ({
+                savedNotes: [data as ProcessedNote, ...state.savedNotes]
+            }));
+        }
+    },
+    deleteNote: async (id) => {
+        const { error } = await supabase
+            .from('processed_notes')
+            .delete()
+            .eq('id', id);
+            
+        if (!error) {
+            set((state) => ({
+                savedNotes: state.savedNotes.filter(n => n.id !== id)
+            }));
+        }
+    },
 
     analytics: {
         streak: 5,
         testsTaken: 12,
         avgScore: 84,
         studyHours: 24,
-        xp: 850,
-        level: 3,
+        xp: 0,
+        level: 1,
         xpToNextLevel: 1000
     },
     updateAnalytics: (updates) => set((state) => ({
         analytics: { ...state.analytics, ...updates }
     })),
-    addXP: (amount) => set((state) => {
-        let newXp = state.analytics.xp + amount;
-        let newLevel = state.analytics.level;
-        let newThreshold = state.analytics.xpToNextLevel;
-        let leveledUp = false;
+    addXP: (amount) => {
+        set((state) => {
+            let newXp = state.analytics.xp + amount;
+            let newLevel = state.analytics.level;
+            let newThreshold = state.analytics.xpToNextLevel;
+            let leveledUp = false;
 
-        while (newXp >= newThreshold) {
-            newLevel++;
-            newXp -= newThreshold; // Carry over XP
-            newThreshold = Math.floor(newThreshold * 1.5); // Scale difficulty
-            leveledUp = true;
-        }
+            while (newXp >= newThreshold) {
+                newLevel++;
+                newXp -= newThreshold;
+                newThreshold = Math.floor(newThreshold * 1.5);
+                leveledUp = true;
+            }
 
-        return {
-            analytics: {
-                ...state.analytics,
-                xp: newXp,
-                level: newLevel,
-                xpToNextLevel: newThreshold
-            },
-            showLevelUpModal: leveledUp ? true : state.showLevelUpModal
-        };
-    }),
+            return {
+                analytics: {
+                    ...state.analytics,
+                    xp: newXp,
+                    level: newLevel,
+                    xpToNextLevel: newThreshold
+                },
+                showLevelUpModal: leveledUp ? true : state.showLevelUpModal
+            };
+        });
+        get().syncProgress();
+    },
 
     achievements: [
         { id: 'first-quiz', title: 'Brainiac Beginnings', description: 'Complete your first quiz module', icon: '🎓' },
         { id: 'battle-winner', title: 'Grandmaster', description: 'Win your first Study Battle', icon: '⚔️' },
-        { id: 'streak-3', title: 'Triple Threat', description: 'Maintain a 3-day study streak', icon: '🔥', unlockedAt: Date.now() },
+        { id: 'streak-3', title: 'Triple Threat', description: 'Maintain a 3-day study streak', icon: '🔥' },
     ],
-    unlockAchievement: (id) => set((state) => ({
-        achievements: state.achievements.map(a => 
-            a.id === id ? { ...a, unlockedAt: Date.now() } : a
-        )
-    })),
+    unlockAchievement: async (id) => {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+            await supabase.from('user_achievements').upsert({
+                user_id: user.id,
+                achievement_id: id,
+                unlocked_at: new Date().toISOString()
+            });
+        }
+        set((state) => ({
+            achievements: state.achievements.map(a => 
+                a.id === id ? { ...a, unlockedAt: Date.now() } : a
+            )
+        }));
+    },
 
     battleLog: [],
-    addBattleRecord: (record) => set((state) => ({
-        battleLog: [
-            { ...record, id: Math.random().toString(36).substring(7), timestamp: Date.now() },
-            ...state.battleLog
-        ]
-    })),
+    addBattleRecord: async (record) => {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+            await supabase.from('battle_history').insert({
+                user_id: user.id,
+                opponent_name: record.opponentName,
+                outcome: record.outcome,
+                score: record.score,
+                opponent_score: record.opponentScore,
+                xp_earned: record.outcome === 'victory' ? 50 : 10
+            });
+        }
+        set((state) => ({
+            battleLog: [
+                { ...record, id: Math.random().toString(36).substring(7), timestamp: Date.now() },
+                ...state.battleLog
+            ]
+        }));
+    },
 
     showLevelUpModal: false,
-    setShowLevelUpModal: (show) => set({ showLevelUpModal: show })
+    setShowLevelUpModal: (show) => set({ showLevelUpModal: show }),
+
+    loadProfile: async (userId) => {
+        // Load basic profile info
+        const { data: profile } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', userId)
+            .single();
+
+        if (profile) {
+            set((state) => ({
+                analytics: {
+                    ...state.analytics,
+                    xp: profile.xp || 0,
+                    level: profile.level || 1,
+                    streak: profile.current_streak || 0,
+                    // Recalculate threshold based on level
+                    xpToNextLevel: Math.floor(1000 * Math.pow(1.5, (profile.level || 1) - 1))
+                }
+            }));
+        }
+
+        // Load achievements
+        const { data: userAchievements } = await supabase
+            .from('user_achievements')
+            .select('achievement_id, unlocked_at')
+            .eq('user_id', userId);
+
+        if (userAchievements) {
+            set((state) => ({
+                achievements: state.achievements.map(a => {
+                    const match = userAchievements.find(ua => ua.achievement_id === a.id);
+                    return match ? { ...a, unlockedAt: new Date(match.unlocked_at).getTime() } : a;
+                })
+            }));
+        }
+
+        // Load battle history
+        const { data: battles } = await supabase
+            .from('battle_history')
+            .select('*')
+            .eq('user_id', userId)
+            .order('created_at', { ascending: false });
+
+        if (battles) {
+            set({
+                battleLog: battles.map(b => ({
+                    id: b.id,
+                    opponentName: b.opponent_name,
+                    outcome: b.outcome as 'victory' | 'defeat',
+                    score: b.score,
+                    opponentScore: b.opponent_score,
+                    timestamp: new Date(b.created_at).getTime()
+                }))
+            });
+        }
+
+        // Chat messages load removed to prevent persistence on refresh
+
+        // Load saved notes
+        const { data: notes } = await supabase
+            .from('processed_notes')
+            .select('*')
+            .eq('user_id', userId)
+            .order('created_at', { ascending: false });
+
+        if (notes) {
+            set({ savedNotes: notes as ProcessedNote[] });
+        }
+    },
+
+    syncProgress: async () => {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+
+        const { analytics } = get();
+        await supabase
+            .from('profiles')
+            .update({
+                xp: analytics.xp,
+                level: analytics.level,
+                current_streak: analytics.streak,
+                updated_at: new Date().toISOString()
+            })
+            .eq('id', user.id);
+    }
 }));
