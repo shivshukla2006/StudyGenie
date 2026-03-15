@@ -100,7 +100,7 @@ export const StudyBattles = () => {
                     setOpponentScore(payload.score);
                 }
             })
-            .subscribe(async (status) => {
+            .subscribe(async (status: any) => {
                 const userToTrack = currentUser;
                 if (status === 'SUBSCRIBED' && userToTrack) {
                     await channel.track({ user: { id: userToTrack.id, username: userToTrack.username } });
