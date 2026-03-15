@@ -288,7 +288,7 @@ export const useStore = create<AppState>((set, get) => ({
         if (userAchievements) {
             set((state) => ({
                 achievements: state.achievements.map(a => {
-                    const match = userAchievements.find(ua => ua.achievement_id === a.id);
+                    const match = userAchievements.find((ua: any) => ua.achievement_id === a.id);
                     return match ? { ...a, unlockedAt: new Date(match.unlocked_at).getTime() } : a;
                 })
             }));
@@ -303,7 +303,7 @@ export const useStore = create<AppState>((set, get) => ({
 
         if (battles) {
             set({
-                battleLog: battles.map(b => ({
+                battleLog: battles.map((b: any) => ({
                     id: b.id,
                     opponentName: b.opponent_name,
                     outcome: b.outcome as 'victory' | 'defeat',

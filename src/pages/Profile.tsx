@@ -1,4 +1,4 @@
-import { User, Settings, Bell, Shield, LogOut, Trophy, Swords, Zap, CheckCircle2, Lock, Moon, Sun } from 'lucide-react';
+import { Settings, Bell, Shield, LogOut, Trophy, Swords, Zap, CheckCircle2, Lock, Moon, Sun } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Card } from '../components/Card';
 import { Button } from '../components/Button';

@@ -8,7 +8,6 @@ export const Analytics = () => {
 
     // Calculate real avg score
     const totalQuizQuestions = quizTopics.reduce((acc, t) => acc + (t.completed || 0), 0);
-    const totalPossibleXP = quizTopics.reduce((acc, t) => acc + (t.total || 0) * 10, 0); // Simplified calc
     
     const avgScore = analytics.avgScore; // Using store's avgScore for now, could be dynamic
     
