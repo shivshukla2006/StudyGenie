@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Sparkles, BookOpen, Brain, Lightbulb, CheckCircle2, ArrowRight, Star, MessageCircle, BarChart3, Calendar, ArrowUpRight, Lock, ShieldCheck, Github, Linkedin, Twitter, AlertCircle, Compass, FileQuestion, LineChart } from 'lucide-react';
+import { Sparkles, BookOpen, Brain, CheckCircle2, ArrowRight, Star, MessageCircle, BarChart3, Calendar, AlertCircle, Compass, FileQuestion, LineChart } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../components/AuthProvider';
 
