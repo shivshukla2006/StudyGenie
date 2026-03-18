@@ -20,24 +20,29 @@ export const Auth = () => {
         setError(null);
 
         try {
+            const cleanEmail = email.trim();
             if (isLogin) {
                 const { error } = await supabase.auth.signInWithPassword({
-                    email,
+                    email: cleanEmail,
                     password,
                 });
                 if (error) throw error;
             } else {
-                const { error } = await supabase.auth.signUp({
-                    email,
+                const { data, error } = await supabase.auth.signUp({
+                    email: cleanEmail,
                     password,
                     options: {
                         data: {
-                            username: email.split('@')[0],
+                            username: cleanEmail.split('@')[0],
                         }
                     }
                 });
                 if (error) throw error;
-                // Optional: Show "Check email" message here if confirm email is enabled in Supabase
+                
+                // If the user signed up but no session is returned, email confirmation is likely required
+                if (!data.session) {
+                    setError('Please check your email to confirm your account.');
+                }
             }
         } catch (err: any) {
             setError(err.message || 'An error occurred during authentication.');
