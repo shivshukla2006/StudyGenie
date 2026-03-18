@@ -5,6 +5,7 @@ import { LevelUpModal } from './components/LevelUpModal';
 import { PWAInstallPrompt } from './components/PWAInstallPrompt';
 import { AuthProvider, useAuth } from './components/AuthProvider';
 import { Auth } from './components/Auth';
+import Landing from './pages/Landing';
 import { useStore } from './store/useStore';
 
 // Lazy load pages for Code-Splitting (Optimizations)
@@ -38,6 +39,7 @@ function AppContent() {
 
   return (
     <Routes>
+      <Route path="/" element={<Landing />} />
       <Route path="/auth" element={!session ? <Auth /> : <Navigate to="/dashboard" replace />} />
       <Route path="/*" element={
         <ProtectedRoute>

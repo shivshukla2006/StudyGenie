@@ -62,10 +62,13 @@ export const Auth = () => {
                     <div className="relative mb-4">
                         <div className="absolute inset-0 bg-gradient-to-r from-blue-500 via-purple-500 to-cyan-400 blur-3xl opacity-30 rounded-full animate-pulse-glow" />
                         <div className="relative w-36 h-36 rounded-3xl bg-gradient-to-br from-slate-900/50 to-slate-800/80 border border-white/10 backdrop-blur-lg p-4 shadow-2xl overflow-hidden flex items-center justify-center animate-float">
-                            <img src="/logo.png" alt="StudyGenie Logo" className="w-full h-full object-contain mix-blend-screen scale-110" />
+                            <img src="/logo_mascot_clean.png" alt="StudyGenie Logo" className="w-full h-full object-contain mix-blend-screen scale-110" />
                         </div>
                     </div>
-                    <h1 className="text-4xl font-black text-white tracking-tight mb-1">StudyGenie</h1>
+                    <h1 className="text-4xl font-black tracking-tight mb-1">
+                        <span className="text-white">Study</span>
+                        <span className="text-[#3B82F6]">Genie</span>
+                    </h1>
                     <p className="text-blue-200/60 font-medium">Your magical learning companion</p>
                 </div>
 

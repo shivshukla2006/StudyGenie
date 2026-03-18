@@ -41,9 +41,12 @@ export const Header = ({ toggleSidebar }: { toggleSidebar?: () => void }) => {
                 {/* Logo */}
                 <div className="flex items-center gap-2 mr-4">
                     <div className="relative h-11 w-11 rounded-full border border-white/20 shadow-[0_2px_8px_rgba(0,0,0,0.4)] overflow-hidden flex items-center justify-center animate-float">
-                        <img src="/logo.png" alt="StudyGenie Logo" className="h-full w-full object-cover" />
+                        <img src="/logo_mascot_clean.png" alt="StudyGenie Logo" className="h-full w-full object-cover" />
                     </div>
-                    <span className="text-xl font-bold bg-gradient-to-r from-white to-blue-200 bg-clip-text text-transparent hidden sm:block">StudyGenie</span>
+                    <span className="text-xl font-bold tracking-tight hidden sm:block">
+                        <span className="text-white">Study</span>
+                        <span className="text-[#3B82F6]">Genie</span>
+                    </span>
                 </div>
 
                 <div className="hidden lg:block w-64">
