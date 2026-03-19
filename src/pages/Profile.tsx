@@ -31,7 +31,7 @@ export const Profile = () => {
 
     const toggleTheme = () => {
         setIsDarkMode(!isDarkMode);
-        document.documentElement.classList.toggle('light-mode');
+        document.documentElement.classList.toggle('dark');
     };
 
     const handleSignOut = async () => {
@@ -225,24 +225,24 @@ export const Profile = () => {
             </div>
             <Modal isOpen={activeModal === 'notifications'} onClose={() => setActiveModal(null)} title="Notifications">
                 <div className="space-y-4">
-                    <div className="flex items-center justify-between p-4 bg-white/5 rounded-xl border border-white/10">
+                    <div className="flex items-center justify-between p-4 rounded-xl border" style={{ backgroundColor: 'var(--sidebar-active-bg)', borderColor: 'var(--card-border)' }}>
                         <div>
-                            <p className="font-bold text-white">Email Alerts</p>
-                            <p className="text-xs text-white/50">Weekly progress reports</p>
+                            <p className="font-bold text-[var(--text-primary)]">Email Alerts</p>
+                            <p className="text-xs text-[var(--text-secondary)]">Weekly progress reports</p>
                         </div>
                         <Toggle checked={emailAlerts} onChange={setEmailAlerts} />
                     </div>
-                    <div className="flex items-center justify-between p-4 bg-white/5 rounded-xl border border-white/10">
+                    <div className="flex items-center justify-between p-4 rounded-xl border" style={{ backgroundColor: 'var(--sidebar-active-bg)', borderColor: 'var(--card-border)' }}>
                         <div>
-                            <p className="font-bold text-white">Push Alerts</p>
-                            <p className="text-xs text-white/50">Instant app updates</p>
+                            <p className="font-bold text-[var(--text-primary)]">Push Alerts</p>
+                            <p className="text-xs text-[var(--text-secondary)]">Instant app updates</p>
                         </div>
                         <Toggle checked={pushAlerts} onChange={setPushAlerts} />
                     </div>
-                    <div className="flex items-center justify-between p-4 bg-white/5 rounded-xl border border-white/10">
+                    <div className="flex items-center justify-between p-4 rounded-xl border" style={{ backgroundColor: 'var(--sidebar-active-bg)', borderColor: 'var(--card-border)' }}>
                         <div>
-                            <p className="font-bold text-white">Study Reminders</p>
-                            <p className="text-xs text-white/50">Daily nudges to keep your streak</p>
+                            <p className="font-bold text-[var(--text-primary)]">Study Reminders</p>
+                            <p className="text-xs text-[var(--text-secondary)]">Daily nudges to keep your streak</p>
                         </div>
                         <Toggle checked={studyReminders} onChange={setStudyReminders} />
                     </div>
@@ -251,14 +251,14 @@ export const Profile = () => {
 
             <Modal isOpen={activeModal === 'privacy'} onClose={() => setActiveModal(null)} title="Privacy & Security">
                 <div className="space-y-4">
-                    <Button variant="secondary" className="w-full justify-start text-white border-white/10 bg-white/5 hover:bg-white/10" onClick={() => { alert('Password reset link sent to your email!'); setActiveModal(null); }}>
+                    <Button variant="secondary" className="w-full justify-start border-[var(--card-border)]" style={{ color: 'var(--btn-text)', backgroundColor: 'var(--btn-primary)' }} onClick={() => { alert('Password reset link sent to your email!'); setActiveModal(null); }}>
                         <Lock size={18} className="mr-2" />
                         Change Password
                     </Button>
-                    <div className="flex items-center justify-between p-4 bg-white/5 rounded-xl border border-white/10 mt-4">
+                    <div className="flex items-center justify-between p-4 rounded-xl border mt-4" style={{ backgroundColor: 'var(--sidebar-active-bg)', borderColor: 'var(--card-border)' }}>
                         <div>
-                            <p className="font-bold text-white">Data Sharing</p>
-                            <p className="text-xs text-white/50">Help improve AI models</p>
+                            <p className="font-bold text-[var(--text-primary)]">Data Sharing</p>
+                            <p className="text-xs text-[var(--text-secondary)]">Help improve AI models</p>
                         </div>
                         <Toggle checked={true} onChange={() => {}} />
                     </div>
@@ -267,22 +267,22 @@ export const Profile = () => {
 
             <Modal isOpen={activeModal === 'account'} onClose={() => setActiveModal(null)} title="Account Settings">
                 <div className="space-y-4">
-                    <div className="bg-white/5 p-4 rounded-xl border border-white/10 space-y-4">
-                        <div className="flex justify-between items-center border-b border-white/5 pb-3">
-                            <span className="text-white/50 text-sm font-semibold">User Type</span>
-                            <span className="text-white font-bold text-sm bg-blue-500/20 text-blue-400 px-3 py-1 rounded-full">{profileDetails?.userType || 'Not set'}</span>
+                    <div className="p-4 rounded-xl border space-y-4" style={{ backgroundColor: 'var(--sidebar-active-bg)', borderColor: 'var(--card-border)' }}>
+                        <div className="flex justify-between items-center border-b pb-3" style={{ borderColor: 'var(--card-border)' }}>
+                            <span className="text-sm font-semibold text-[var(--text-secondary)]">User Type</span>
+                            <span className="font-bold text-sm bg-blue-500/20 text-blue-500 px-3 py-1 rounded-full">{profileDetails?.userType || 'Not set'}</span>
                         </div>
-                        <div className="flex justify-between items-center border-b border-white/5 pb-3">
-                            <span className="text-white/50 text-sm font-semibold">Academic Path</span>
-                            <span className="text-white font-bold text-sm bg-purple-500/20 text-purple-400 px-3 py-1 rounded-full">{profileDetails?.academicPath || 'Not set'}</span>
+                        <div className="flex justify-between items-center border-b pb-3" style={{ borderColor: 'var(--card-border)' }}>
+                            <span className="text-sm font-semibold text-[var(--text-secondary)]">Academic Path</span>
+                            <span className="font-bold text-sm bg-purple-500/20 text-purple-500 px-3 py-1 rounded-full">{profileDetails?.academicPath || 'Not set'}</span>
                         </div>
-                        <div className="flex justify-between items-center border-b border-white/5 pb-3">
-                            <span className="text-white/50 text-sm font-semibold">Goals</span>
-                            <span className="text-white font-bold text-sm text-right max-w-[60%]">{profileDetails?.goals?.join(', ') || 'Not set'}</span>
+                        <div className="flex justify-between items-center border-b pb-3" style={{ borderColor: 'var(--card-border)' }}>
+                            <span className="text-sm font-semibold text-[var(--text-secondary)]">Goals</span>
+                            <span className="font-bold text-sm text-right max-w-[60%] text-[var(--text-primary)]">{profileDetails?.goals?.join(', ') || 'Not set'}</span>
                         </div>
                         <div className="flex justify-between items-center">
-                            <span className="text-white/50 text-sm font-semibold">Weak Subjects</span>
-                            <span className="text-white font-bold text-sm text-right max-w-[60%] text-red-400">{profileDetails?.weakSubjects?.join(', ') || 'Not set'}</span>
+                            <span className="text-sm font-semibold text-[var(--text-secondary)]">Weak Subjects</span>
+                            <span className="font-bold text-sm text-right max-w-[60%] text-red-500">{profileDetails?.weakSubjects?.join(', ') || 'Not set'}</span>
                         </div>
                     </div>
                     <Button variant="primary" className="w-full font-bold" onClick={() => setActiveModal(null)}>Done</Button>

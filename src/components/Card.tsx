@@ -16,7 +16,7 @@ export const Card = React.forwardRef<HTMLDivElement, CardProps>(
             <div
                 ref={ref}
                 className={cn(
-                    "p-6 text-white transition-all duration-300",
+                    "p-6 transition-all duration-300",
                     glow && "shadow-[0_0_15px_rgba(59,130,246,0.5)] ring-1 ring-blue-500/50",
                     className
                 )}
