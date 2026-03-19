@@ -27,7 +27,7 @@ export const Header = ({ toggleSidebar }: { toggleSidebar?: () => void }) => {
     const xpProgress = (analytics.xp / analytics.xpToNextLevel) * 100;
 
     return (
-        <header className="sticky top-0 z-30 flex h-16 w-full items-center justify-between border-b border-white/10 px-4 backdrop-blur-md sm:px-6 lg:px-8 transition-colors duration-300" style={{ backgroundColor: 'var(--header-bg)', color: 'var(--header-text)' }}>
+        <header className="sticky top-0 z-30 flex h-16 w-full items-center justify-between border-b border-white/10 bg-white/5 backdrop-blur-3xl px-4 sm:px-6 lg:px-8 shadow-[0_4px_24px_rgba(0,0,0,0.2)]">
             <div className="flex items-center gap-4">
                 {toggleSidebar && (
                     <button

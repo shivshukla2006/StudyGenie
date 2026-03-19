@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
-import { Swords, Timer, Zap, Trophy, Shield, AlertCircle, User, Check, X } from 'lucide-react';
+import { Swords, Timer, Zap, Trophy, Shield, AlertCircle, User, Check, X, Flame } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Card } from '../components/Card';
 import { Button } from '../components/Button';
@@ -15,6 +15,7 @@ export const StudyBattles = () => {
     const [opponentScore, setOpponentScore] = useState(0);
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
     const [shake, setShake] = useState(false);
+    const [comboStreak, setComboStreak] = useState(0);
 
     // Live Multiplayer State
     const [currentUser, setCurrentUser] = useState<{ id: string; username: string } | null>(null);
@@ -201,6 +202,7 @@ export const StudyBattles = () => {
                 setScore(0);
                 setOpponentScore(0);
                 setCurrentQuestionIndex(0);
+                setComboStreak(0);
             }, 3000);
         }
         return () => clearTimeout(timer);
@@ -212,7 +214,9 @@ export const StudyBattles = () => {
         const isCorrect = optionIndex === battleQuestions[currentQuestionIndex].correct;
         
         if (isCorrect) {
-            const newScore = score + 25;
+            setComboStreak(prev => prev + 1);
+            const multiplier = comboStreak >= 3 ? 2 : 1;
+            const newScore = score + (25 * multiplier);
             setScore(newScore);
             broadcastScore(newScore);
             if (currentQuestionIndex < battleQuestions.length - 1) {
@@ -221,6 +225,7 @@ export const StudyBattles = () => {
                 handleBattleEnd();
             }
         } else {
+            setComboStreak(0);
             setShake(true);
             setTimeout(() => setShake(false), 500);
         }
@@ -350,26 +355,43 @@ export const StudyBattles = () => {
                             animate={shake ? { x: [-10, 10, -10, 10, 0] } : {}}
                             transition={{ duration: 0.4 }}
                         >
-                            <Card className="relative overflow-hidden p-8 border-t-4 border-t-blue-500">
+                            <Card className={`relative overflow-hidden p-8 border-t-4 transition-all duration-300 ${comboStreak >= 3 ? 'border-orange-500 shadow-[0_0_40px_rgba(249,115,22,0.3)] bg-gradient-to-b from-orange-500/5 to-transparent' : 'border-t-blue-500'}`}>
                                 <div className="absolute top-0 left-0 w-full h-1 bg-white/5">
                                     <motion.div 
-                                        className="h-full bg-gradient-to-r from-blue-500 to-purple-500" 
+                                        className={`h-full ${comboStreak >= 3 ? 'bg-gradient-to-r from-orange-400 to-red-500 shadow-[0_0_10px_#f97316]' : 'bg-gradient-to-r from-blue-500 to-purple-500'}`} 
                                         initial={{ width: '100%' }}
                                         animate={{ width: `${(timeLeft / 30) * 100}%` }}
                                         transition={{ duration: 1, ease: 'linear' }}
                                     />
                                 </div>
                                 
-                                <div className="flex items-center justify-between mb-6">
-                                    <span className="px-3 py-1 rounded-full bg-blue-500/10 text-blue-400 text-xs font-bold uppercase tracking-wider border border-blue-500/20">
+                                <div className="flex items-center justify-between mb-6 h-8">
+                                    <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider border ${comboStreak >= 3 ? 'bg-orange-500/10 text-orange-400 border-orange-500/30' : 'bg-blue-500/10 text-blue-400 border-blue-500/20'}`}>
                                         Question {currentQuestionIndex + 1} / {battleQuestions.length}
                                     </span>
-                                    {shake && (
-                                        <div className="flex items-center gap-1 text-red-500 animate-bounce">
-                                            <AlertCircle size={14} />
-                                            <span className="text-xs font-bold">Wrong!</span>
-                                        </div>
-                                    )}
+                                    
+                                    <div className="flex items-center gap-3">
+                                        <AnimatePresence>
+                                            {comboStreak >= 2 && (
+                                                <motion.div
+                                                    key={comboStreak}
+                                                    initial={{ scale: 0, rotate: -10 }}
+                                                    animate={{ scale: 1, rotate: 0 }}
+                                                    className="flex items-center gap-1 bg-gradient-to-r from-yellow-500 to-orange-600 text-white px-3 py-1 rounded-full font-black text-xs shadow-[0_0_15px_rgba(249,115,22,0.6)]"
+                                                >
+                                                    <Flame size={12} className={comboStreak >= 3 ? "animate-pulse" : ""} />
+                                                    {comboStreak} STREAK {comboStreak >= 3 && "x2 XP"}
+                                                </motion.div>
+                                            )}
+                                        </AnimatePresence>
+
+                                        {shake && (
+                                            <div className="flex items-center gap-1 text-red-500 animate-bounce">
+                                                <AlertCircle size={14} />
+                                                <span className="text-xs font-bold">Wrong!</span>
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
 
                                 <h3 className="text-2xl font-bold mb-8 text-[var(--text-primary)] leading-tight">

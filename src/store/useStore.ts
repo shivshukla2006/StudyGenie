@@ -83,6 +83,10 @@ interface AppState {
     // Cloud Sync Actions
     loadProfile: (userId: string) => Promise<void>;
     syncProgress: () => Promise<void>;
+
+    // Tour state
+    hasCompletedTour: boolean;
+    completeTour: () => void;
 }
 
 export interface Achievement {
@@ -287,6 +291,9 @@ export const useStore = create<AppState>((set, get) => ({
 
     showLevelUpModal: false,
     setShowLevelUpModal: (show) => set({ showLevelUpModal: show }),
+
+    hasCompletedTour: false,
+    completeTour: () => set({ hasCompletedTour: true }),
 
     loadProfile: async (userId) => {
         // Load basic profile info

@@ -256,11 +256,14 @@ export const Chat = () => {
                                 <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0" style={{ backgroundColor: 'var(--sidebar-active-bg)' }}>
                                     <Bot size={16} style={{ color: 'var(--btn-primary)' }} />
                                 </div>
-                                <div className="p-3 flex flex-col gap-2 rounded-2xl rounded-tl-none border" style={{ backgroundColor: 'var(--chat-ai-bg)', borderColor: 'var(--chat-ai-border)', color: 'var(--chat-ai-text)' }}>
-                                    <div className="flex gap-1 items-center h-5">
-                                        <span className="w-2 h-2 rounded-full bg-current animate-bounce" style={{ animationDelay: '0ms' }} />
-                                        <span className="w-2 h-2 rounded-full bg-current animate-bounce" style={{ animationDelay: '150ms' }} />
-                                        <span className="w-2 h-2 rounded-full bg-current animate-bounce" style={{ animationDelay: '300ms' }} />
+                                <div className="p-3 px-4 flex flex-col gap-2 rounded-2xl rounded-tl-none border bg-gradient-to-r from-blue-500/10 to-purple-500/10 border-blue-500/20 text-blue-400 relative overflow-hidden">
+                                    <div className="flex items-center gap-2 relative z-10">
+                                        <span className="text-xs font-bold uppercase tracking-widest bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-400">Genie is thinking</span>
+                                        <div className="flex gap-1 items-center h-4 ml-1">
+                                            <span className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-bounce shadow-[0_0_8px_rgba(168,85,247,0.8)]" style={{ animationDelay: '0ms' }} />
+                                            <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-bounce shadow-[0_0_8px_rgba(59,130,246,0.8)]" style={{ animationDelay: '150ms' }} />
+                                            <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-bounce shadow-[0_0_8px_rgba(34,211,238,0.8)]" style={{ animationDelay: '300ms' }} />
+                                        </div>
                                     </div>
                                 </div>
                             </div>

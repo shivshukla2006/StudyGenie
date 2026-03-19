@@ -56,7 +56,7 @@ export const Dashboard = () => {
             </div>
 
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                <Card glow={true}>
+                <Card glow={true} id="tour-goal">
                     <h3 className="text-lg font-semibold text-[var(--text-primary)]">Level {analytics.level} Progress</h3>
                     <p className="mt-2 mb-4 text-sm" style={{ color: 'var(--text-secondary)' }}>
                         {analytics.xp} / {analytics.xpToNextLevel} XP towards your next rank!
@@ -66,7 +66,7 @@ export const Dashboard = () => {
                     </div>
                 </Card>
 
-                <Card>
+                <Card id="tour-quizzes">
                     <h3 className="text-lg font-semibold text-[var(--text-primary)]">Practice Quizzes</h3>
                     <p className="mt-2 mb-4 text-sm" style={{ color: 'var(--text-secondary)' }}>
                         {quizTopics.length > 0 ? 'Pick up where you left off or start a new topic.' : 'Generate your first personalized pattern-matching quiz.'}
@@ -78,7 +78,7 @@ export const Dashboard = () => {
                     </Link>
                 </Card>
 
-                <Card>
+                <Card id="tour-chat">
                     <h3 className="text-lg font-semibold text-[var(--text-primary)]">AI Tutor</h3>
                     <p className="mt-2 mb-4 text-sm" style={{ color: 'var(--text-secondary)' }}>Stuck on a topic? Ask the Genie for help instantly.</p>
                     <Link to="/chat">

@@ -32,13 +32,13 @@ export const Sidebar = () => {
                                 }`
                             }
                             style={({ isActive }) => isActive ? {
-                                backgroundColor: 'var(--sidebar-active-bg)',
-                                borderLeft: '3px solid var(--sidebar-active-border)',
-                                color: 'var(--sidebar-text)'
+                                backgroundColor: 'rgba(255,255,255,0.1)',
+                                borderLeft: '3px solid var(--btn-primary)',
+                                color: 'white'
                             } : {
                                 borderLeft: '3px solid transparent',
-                                color: 'var(--sidebar-text)',
-                                opacity: 0.7
+                                color: 'var(--text-secondary)',
+                                opacity: 0.8
                             }}
                         >
                             {({ isActive }) => (
@@ -60,7 +60,7 @@ export const Sidebar = () => {
     );
 
     return (
-        <aside className="group h-full flex flex-col border-r border-white/10 transition-[width,background-color] duration-300 ease-in-out w-full lg:w-20 lg:hover:w-64 overflow-hidden z-20 shrink-0" style={{ backgroundColor: 'var(--sidebar-bg)', color: 'var(--sidebar-text)' }}>
+        <aside className="group h-full flex flex-col border-r border-white/10 bg-white/5 backdrop-blur-2xl transition-[width,background-color] duration-300 ease-in-out w-full lg:w-20 lg:hover:w-64 overflow-hidden z-20 shrink-0 shadow-[4px_0_24px_rgba(0,0,0,0.3)]">
             <div className="flex flex-1 flex-col overflow-y-auto px-4 py-6">
                 <nav className="flex-1 space-y-8">
                     <div>
