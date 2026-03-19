@@ -4,9 +4,11 @@ import { GenieMascot } from '../components/GenieMascot';
 import { useStore } from '../store/useStore';
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
+import { Link } from 'react-router-dom';
 
 export const Dashboard = () => {
     const analytics = useStore(state => state.analytics);
+    const quizTopics = useStore(state => state.quizTopics);
     const [weakTopics, setWeakTopics] = useState<Array<{ topic: string; accuracy: number; attempts_count: number }>>([]);
 
     useEffect(() => {
@@ -55,23 +57,33 @@ export const Dashboard = () => {
 
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                 <Card glow={true}>
-                    <h3 className="text-lg font-semibold text-[var(--text-primary)]">Daily Goal</h3>
-                    <p className="mt-2 mb-4 text-sm" style={{ color: 'var(--text-secondary)' }}>You are 80% done with your goal today. Keep it up!</p>
+                    <h3 className="text-lg font-semibold text-[var(--text-primary)]">Level {analytics.level} Progress</h3>
+                    <p className="mt-2 mb-4 text-sm" style={{ color: 'var(--text-secondary)' }}>
+                        {analytics.xp} / {analytics.xpToNextLevel} XP towards your next rank!
+                    </p>
                     <div className="w-full h-2 rounded-full" style={{ backgroundColor: 'var(--sidebar-active-bg)' }}>
-                        <div className="w-[80%] h-full rounded-full bg-gradient-to-r from-blue-400 to-blue-500 shadow-[0_0_10px_var(--mascot-glow)]"></div>
+                        <div className="h-full rounded-full bg-gradient-to-r from-blue-400 to-blue-500 shadow-[0_0_10px_var(--mascot-glow)] transition-all duration-500" style={{ width: `${Math.min((analytics.xp / analytics.xpToNextLevel) * 100, 100)}%` }}></div>
                     </div>
                 </Card>
 
                 <Card>
-                    <h3 className="text-lg font-semibold text-[var(--text-primary)]">Start Practice</h3>
-                    <p className="mt-2 mb-4 text-sm" style={{ color: 'var(--text-secondary)' }}>Jump into the latest generated quiz.</p>
-                    <Button variant="secondary" className="w-full">Continue Quiz</Button>
+                    <h3 className="text-lg font-semibold text-[var(--text-primary)]">Practice Quizzes</h3>
+                    <p className="mt-2 mb-4 text-sm" style={{ color: 'var(--text-secondary)' }}>
+                        {quizTopics.length > 0 ? 'Pick up where you left off or start a new topic.' : 'Generate your first personalized pattern-matching quiz.'}
+                    </p>
+                    <Link to="/quizzes">
+                        <Button variant={quizTopics.length > 0 ? "secondary" : "glow"} className="w-full">
+                            {quizTopics.length > 0 ? 'Continue Practicing' : 'Generate Quiz'}
+                        </Button>
+                    </Link>
                 </Card>
 
                 <Card>
                     <h3 className="text-lg font-semibold text-[var(--text-primary)]">AI Tutor</h3>
-                    <p className="mt-2 mb-4 text-sm" style={{ color: 'var(--text-secondary)' }}>Stuck on a topic? Ask the Genie for help.</p>
-                    <Button variant="primary" className="w-full">Open Chat</Button>
+                    <p className="mt-2 mb-4 text-sm" style={{ color: 'var(--text-secondary)' }}>Stuck on a topic? Ask the Genie for help instantly.</p>
+                    <Link to="/chat">
+                        <Button variant="primary" className="w-full">Open Chat</Button>
+                    </Link>
                 </Card>
             </div>
 
