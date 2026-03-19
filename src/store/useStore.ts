@@ -205,10 +205,10 @@ export const useStore = create<AppState>((set, get) => ({
     },
 
     analytics: {
-        streak: 5,
-        testsTaken: 12,
-        avgScore: 84,
-        studyHours: 24,
+        streak: 0,
+        testsTaken: 0,
+        avgScore: 0,
+        studyHours: 0,
         xp: 0,
         level: 1,
         xpToNextLevel: 1000

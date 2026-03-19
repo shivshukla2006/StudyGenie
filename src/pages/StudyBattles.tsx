@@ -277,7 +277,13 @@ export const StudyBattles = () => {
                             </h3>
                             <div className="space-y-3 max-h-[220px] overflow-y-auto">
                                 {onlineUsers.length === 0 ? (
-                                    <p style={{ color: 'var(--text-secondary)' }} className="text-sm text-center py-4">No other players online</p>
+                                    <div className="text-center py-8">
+                                        <div className="w-12 h-12 bg-blue-500/10 rounded-full flex items-center justify-center mx-auto mb-3">
+                                            <Shield size={20} className="text-blue-500 opacity-50" />
+                                        </div>
+                                        <p className="text-sm font-bold text-[var(--text-primary)]">The Arena is Quiet</p>
+                                        <p style={{ color: 'var(--text-secondary)' }} className="text-xs mt-1">Be the first player to step in, or prepare yourself by generating practice quizzes!</p>
+                                    </div>
                                 ) : (
                                     onlineUsers.map((u, idx) => (
                                         <div key={idx} className="flex justify-between items-center p-3 rounded-xl bg-white/5 border border-white/5">

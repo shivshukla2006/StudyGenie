@@ -23,10 +23,7 @@ export const Analytics = () => {
 
     // Data for the chart (last 7 battles or quizzes)
     const recentActivity = [...battleLog].reverse().slice(-7).map(b => b.score);
-    if (recentActivity.length < 7) {
-        // Fill with some dummy growth if new user
-        while (recentActivity.length < 7) recentActivity.unshift(Math.floor(Math.random() * 50));
-    }
+
 
     const maxScore = Math.max(...recentActivity, 100);
 
@@ -42,65 +39,85 @@ export const Analytics = () => {
                 </div>
             </div>
 
-            <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
-                {stats.map((stat, i) => {
-                    const Icon = stat.icon;
-                    return (
-                        <Card key={i} className="flex flex-col items-center justify-center p-6 text-center group">
-                            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center mb-4 transition-all group-hover:scale-110 ${stat.color} bg-white/5 opacity-80 shadow-inner`}>
-                                <Icon size={24} />
-                            </div>
-                            <h3 className="text-2xl font-black text-[var(--text-primary)] tracking-tight">{stat.value}</h3>
-                            <p className="text-xs font-bold text-[var(--text-secondary)] uppercase tracking-widest mt-1 opacity-60">{stat.label}</p>
-                            <span className="text-[10px] font-black mt-2 px-2 py-0.5 rounded-full bg-white/5 border border-white/5" style={{ color: 'var(--streak-color)' }}>
-                                {stat.trend}
-                            </span>
-                        </Card>
-                    );
-                })}
-            </div>
-
-            {/* Real Chart */}
-            <Card className="p-8 border-white/5 relative overflow-hidden h-[400px]">
-                <div className="relative z-10 h-full flex flex-col">
-                    <div className="flex justify-between items-start mb-8">
-                        <div>
-                            <h3 className="text-xl font-bold text-[var(--text-primary)]">Learning Velocity</h3>
-                            <p className="text-sm text-[var(--text-secondary)]">XP growth across recent activities</p>
-                        </div>
-                        <div className="flex items-center gap-4 text-xs font-bold uppercase tracking-tighter text-[var(--text-secondary)]">
-                            <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-blue-500" /> Score</div>
-                            <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-purple-500" /> Goal</div>
-                        </div>
+            {analytics.testsTaken === 0 && battleLog.length === 0 ? (
+                <Card className="text-center p-12 border-dashed border-2 flex flex-col items-center justify-center mt-8" style={{ backgroundColor: 'transparent', borderColor: 'var(--card-border)' }}>
+                    <div className="w-20 h-20 bg-purple-500/10 rounded-3xl flex items-center justify-center mb-6 shadow-inner border border-purple-500/20">
+                        <BarChart3 className="w-10 h-10 text-purple-500 animate-pulse-glow" />
+                    </div>
+                    <h2 className="text-2xl font-black mb-3 text-[var(--text-primary)]">Awaiting Your First Move</h2>
+                    <p className="max-w-md mx-auto mb-8 font-medium leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
+                        "The only time you should ever look back, is to see how far you've come."<br/><br/>
+                        Your analytics are completely real-time. Start taking quizzes or participating in Study Battles to watch your stats organically grow!
+                    </p>
+                </Card>
+            ) : (
+                <>
+                    <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
+                        {stats.map((stat, i) => {
+                            const Icon = stat.icon;
+                            return (
+                                <Card key={i} className="flex flex-col items-center justify-center p-6 text-center group">
+                                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center mb-4 transition-all group-hover:scale-110 ${stat.color} bg-white/5 opacity-80 shadow-inner`}>
+                                        <Icon size={24} />
+                                    </div>
+                                    <h3 className="text-2xl font-black text-[var(--text-primary)] tracking-tight">{stat.value}</h3>
+                                    <p className="text-xs font-bold text-[var(--text-secondary)] uppercase tracking-widest mt-1 opacity-60">{stat.label}</p>
+                                    <span className="text-[10px] font-black mt-2 px-2 py-0.5 rounded-full bg-white/5 border border-white/5" style={{ color: 'var(--streak-color)' }}>
+                                        {stat.trend}
+                                    </span>
+                                </Card>
+                            );
+                        })}
                     </div>
 
-                    <div className="flex-1 flex items-end justify-between px-2 gap-3 pb-6 relative">
-                        {/* Grid Lines */}
-                        <div className="absolute inset-0 flex flex-col justify-between pointer-events-none pb-6 opacity-10">
-                            {[1, 2, 3, 4].map(line => (
-                                <div key={line} className="w-full border-t border-white" />
-                            ))}
-                        </div>
-
-                        {recentActivity.map((score, i) => (
-                            <div key={i} className="flex-1 flex flex-col items-center group relative cursor-pointer pt-4">
-                                <div className="absolute -top-6 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap bg-blue-600 text-white text-[10px] font-bold px-2 py-0.5 rounded shadow-lg z-20">
-                                    {score} XP
+                    {/* Real Chart */}
+                    <Card className="p-8 border-white/5 relative overflow-hidden h-[400px]">
+                        <div className="relative z-10 h-full flex flex-col">
+                            <div className="flex justify-between items-start mb-8">
+                                <div>
+                                    <h3 className="text-xl font-bold text-[var(--text-primary)]">Learning Velocity</h3>
+                                    <p className="text-sm text-[var(--text-secondary)]">XP growth across recent activities</p>
                                 </div>
-                                <motion.div 
-                                    initial={{ height: 0 }}
-                                    animate={{ height: `${(score / maxScore) * 80}%` }}
-                                    className="w-full max-w-[40px] rounded-xl bg-gradient-to-t from-blue-600/80 via-blue-400/80 to-blue-400 group-hover:from-blue-500 group-hover:to-blue-300 transition-all shadow-[0_0_20px_rgba(59,130,246,0.3)]"
-                                />
-                                <span className="text-[10px] font-bold text-[var(--text-secondary)] mt-4 opacity-40 uppercase">Day {i + 1}</span>
+                                <div className="flex items-center gap-4 text-xs font-bold uppercase tracking-tighter text-[var(--text-secondary)]">
+                                    <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-blue-500" /> Score</div>
+                                    <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-purple-500" /> Goal</div>
+                                </div>
                             </div>
-                        ))}
-                    </div>
-                </div>
-                
-                {/* Decorative Background */}
-                <div className="absolute bottom-0 right-0 w-64 h-64 bg-blue-500/10 rounded-full blur-[100px] pointer-events-none translate-x-1/2 translate-y-1/2" />
-            </Card>
+
+                            <div className="flex-1 flex items-end justify-between px-2 gap-3 pb-6 relative">
+                                {/* Grid Lines */}
+                                <div className="absolute inset-0 flex flex-col justify-between pointer-events-none pb-6 opacity-10">
+                                    {[1, 2, 3, 4].map(line => (
+                                        <div key={line} className="w-full border-t border-white" />
+                                    ))}
+                                </div>
+
+                                {recentActivity.map((score, i) => (
+                                    <div key={i} className="flex-1 flex flex-col items-center group relative cursor-pointer pt-4">
+                                        <div className="absolute -top-6 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap bg-blue-600 text-white text-[10px] font-bold px-2 py-0.5 rounded shadow-lg z-20">
+                                            {score} XP
+                                        </div>
+                                        <motion.div 
+                                            initial={{ height: 0 }}
+                                            animate={{ height: `${(score / maxScore) * 80}%` }}
+                                            className="w-full max-w-[40px] rounded-xl bg-gradient-to-t from-blue-600/80 via-blue-400/80 to-blue-400 group-hover:from-blue-500 group-hover:to-blue-300 transition-all shadow-[0_0_20px_rgba(59,130,246,0.3)]"
+                                        />
+                                        <span className="text-[10px] font-bold text-[var(--text-secondary)] mt-4 opacity-40 uppercase">Day {i + 1}</span>
+                                    </div>
+                                ))}
+                                {recentActivity.length === 0 && (
+                                    <div className="absolute inset-0 flex items-center justify-center text-[var(--text-secondary)]">
+                                        No recent battles to graph!
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                        
+                        {/* Decorative Background */}
+                        <div className="absolute bottom-0 right-0 w-64 h-64 bg-blue-500/10 rounded-full blur-[100px] pointer-events-none translate-x-1/2 translate-y-1/2" />
+                    </Card>
+                </>
+            )}
         </div>
     );
 };

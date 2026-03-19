@@ -181,8 +181,12 @@ export const Profile = () => {
                                 </Card>
                             ))
                         ) : (
-                            <Card className="p-8 text-center border-dashed border-white/10 bg-transparent">
-                                <p className="text-sm text-[var(--text-secondary)]">No battles fought yet. Go to Arena!</p>
+                            <Card className="p-8 text-center border-dashed border-2 flex flex-col items-center justify-center" style={{ backgroundColor: 'transparent', borderColor: 'var(--card-border)' }}>
+                                <div className="w-12 h-12 bg-blue-500/10 rounded-xl flex items-center justify-center mb-3">
+                                    <Swords size={20} className="text-blue-500" />
+                                </div>
+                                <p className="text-sm font-bold text-[var(--text-primary)]">No Battles Fought Yet</p>
+                                <p className="text-xs mt-1" style={{ color: 'var(--text-secondary)' }}>Step into the Arena to test your mettle and claim your first victory!</p>
                             </Card>
                         )}
                     </div>
