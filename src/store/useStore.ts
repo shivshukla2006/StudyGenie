@@ -154,11 +154,7 @@ export const useStore = create<AppState>((set, get) => ({
         });
     },
 
-    quizTopics: [
-        { id: 1, name: 'Data Structures', total: 15, completed: 5, time: '20m' },
-        { id: 2, name: 'Linear Algebra', total: 10, completed: 8, time: '15m' },
-        { id: 3, name: 'Biology - Genetics', total: 20, completed: 0, time: '30m' },
-    ],
+    quizTopics: [],
     updateQuizProgress: (topicId, questionsCompleted) => {
         const xpGained = questionsCompleted * 10;
         set((state) => {

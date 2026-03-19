@@ -96,44 +96,61 @@ export const Quizzes = () => {
                 </Button>
             </div>
 
-            <div className="grid gap-4 md:grid-cols-2">
-                {topics.map((topic) => (
-                    <Card key={topic.id} className="cursor-pointer hover:border-[var(--btn-primary)] transition-colors flex flex-col justify-between">
-                        <div>
-                            <div className="flex items-start justify-between mb-4">
-                                <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ backgroundColor: 'var(--sidebar-active-bg)', color: 'var(--btn-primary)' }}>
-                                    <BookOpen size={20} />
+            {topics.length === 0 ? (
+                <Card className="text-center p-12 border-dashed border-2 flex flex-col items-center justify-center mt-8" style={{ backgroundColor: 'transparent', borderColor: 'var(--card-border)' }}>
+                    <div className="w-20 h-20 bg-blue-500/10 rounded-3xl flex items-center justify-center mb-6 shadow-inner border border-blue-500/20">
+                        <Sparkles className="w-10 h-10 text-blue-500 animate-pulse-glow" />
+                    </div>
+                    <h2 className="text-2xl font-black mb-3 text-[var(--text-primary)]">Your Journey Begins Here</h2>
+                    <p className="max-w-md mx-auto mb-8 font-medium leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
+                        "Success is the sum of small efforts, repeated day in and day out."<br/><br/>
+                        Use Genie Magic to generate your first custom practice quiz and start mastering your subjects in real-time!
+                    </p>
+                    <Button variant="glow" onClick={() => setShowGenieModal(true)} className="px-8 py-3 rounded-xl border border-blue-500/50">
+                        <Sparkles className="w-5 h-5 mr-2" />
+                        Create Your First Quiz
+                    </Button>
+                </Card>
+            ) : (
+                <div className="grid gap-4 md:grid-cols-2">
+                    {topics.map((topic) => (
+                        <Card key={topic.id} className="cursor-pointer hover:border-[var(--btn-primary)] transition-colors flex flex-col justify-between">
+                            <div>
+                                <div className="flex items-start justify-between mb-4">
+                                    <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ backgroundColor: 'var(--sidebar-active-bg)', color: 'var(--btn-primary)' }}>
+                                        <BookOpen size={20} />
+                                    </div>
+                                    <div className="flex items-center gap-1 text-xs font-semibold px-2 py-1 rounded-full" style={{ backgroundColor: 'var(--sidebar-active-bg)', color: 'var(--text-secondary)' }}>
+                                        <Clock size={12} />
+                                        <span>{topic.time}</span>
+                                    </div>
                                 </div>
-                                <div className="flex items-center gap-1 text-xs font-semibold px-2 py-1 rounded-full" style={{ backgroundColor: 'var(--sidebar-active-bg)', color: 'var(--text-secondary)' }}>
-                                    <Clock size={12} />
-                                    <span>{topic.time}</span>
+                                <h3 className="text-lg font-bold text-[var(--text-primary)]">{topic.name}</h3>
+                                <div className="flex items-center gap-2 mt-2 text-sm" style={{ color: 'var(--text-secondary)' }}>
+                                    <Star size={14} />
+                                    <span>{topic.completed} / {topic.total} Completed</span>
                                 </div>
                             </div>
-                            <h3 className="text-lg font-bold text-[var(--text-primary)]">{topic.name}</h3>
-                            <div className="flex items-center gap-2 mt-2 text-sm" style={{ color: 'var(--text-secondary)' }}>
-                                <Star size={14} />
-                                <span>{topic.completed} / {topic.total} Completed</span>
-                            </div>
-                        </div>
 
-                        <div className="mt-6">
-                            <div className="w-full h-1.5 rounded-full mb-4" style={{ backgroundColor: 'var(--sidebar-active-bg)' }}>
-                                <div
-                                    className="h-full rounded-full"
-                                    style={{ width: `${(topic.completed / topic.total) * 100}%`, backgroundColor: 'var(--btn-primary)' }}
-                                />
+                            <div className="mt-6">
+                                <div className="w-full h-1.5 rounded-full mb-4" style={{ backgroundColor: 'var(--sidebar-active-bg)' }}>
+                                    <div
+                                        className="h-full rounded-full"
+                                        style={{ width: `${(topic.completed / topic.total) * 100}%`, backgroundColor: 'var(--btn-primary)' }}
+                                    />
+                                </div>
+                                <Button 
+                                    variant={topic.completed === 0 ? 'secondary' : 'glow'} 
+                                    className="w-full"
+                                    onClick={() => handleStart(topic)}
+                                >
+                                    {topic.completed === 0 ? 'Start Now' : 'Continue'}
+                                </Button>
                             </div>
-                            <Button 
-                                variant={topic.completed === 0 ? 'secondary' : 'glow'} 
-                                className="w-full"
-                                onClick={() => handleStart(topic)}
-                            >
-                                {topic.completed === 0 ? 'Start Now' : 'Continue'}
-                            </Button>
-                        </div>
-                    </Card>
-                ))}
-            </div>
+                        </Card>
+                    ))}
+                </div>
+            )}
 
             {/* Genie Magic Modal */}
             <Modal isOpen={showGenieModal} onClose={() => setShowGenieModal(false)} title="Genie AI Generator">
