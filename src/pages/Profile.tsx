@@ -2,13 +2,32 @@ import { Settings, Bell, Shield, LogOut, Trophy, Swords, Zap, CheckCircle2, Lock
 import { motion } from 'framer-motion';
 import { Card } from '../components/Card';
 import { Button } from '../components/Button';
+import { Modal } from '../components/Modal';
 import { useStore } from '../store/useStore';
 import { supabase } from '../lib/supabase';
 import { useState } from 'react';
 
+const Toggle = ({ checked, onChange }: { checked: boolean; onChange: (c: boolean) => void }) => (
+    <button
+        onClick={() => onChange(!checked)}
+        className={`w-12 h-6 rounded-full p-1 transition-colors flex items-center ${checked ? 'bg-blue-500' : 'bg-white/10'}`}
+    >
+        <motion.div
+            layout
+            className="w-4 h-4 bg-white rounded-full shadow-md"
+            animate={{ x: checked ? 24 : 0 }}
+            transition={{ type: "spring", stiffness: 500, damping: 30 }}
+        />
+    </button>
+);
+
 export const Profile = () => {
-    const { analytics, achievements, battleLog, savedNotes, messages } = useStore();
+    const { analytics, achievements, battleLog, savedNotes, messages, profileDetails } = useStore();
     const [isDarkMode, setIsDarkMode] = useState(true);
+    const [activeModal, setActiveModal] = useState<'notifications' | 'privacy' | 'account' | null>(null);
+    const [emailAlerts, setEmailAlerts] = useState(true);
+    const [pushAlerts, setPushAlerts] = useState(true);
+    const [studyReminders, setStudyReminders] = useState(true);
 
     const toggleTheme = () => {
         setIsDarkMode(!isDarkMode);
@@ -27,9 +46,24 @@ export const Profile = () => {
             desc: `Switch to ${isDarkMode ? 'Light' : 'Dark'} mode`,
             action: toggleTheme
         },
-        { icon: Bell, label: 'Notifications', desc: 'Configure alert preferences' },
-        { icon: Shield, label: 'Privacy & Security', desc: 'Secure your StudyGenie data' },
-        { icon: Settings, label: 'Account Settings', desc: 'Manage your profile and data' },
+        { 
+            icon: Bell, 
+            label: 'Notifications', 
+            desc: 'Configure alert preferences',
+            action: () => setActiveModal('notifications')
+        },
+        { 
+            icon: Shield, 
+            label: 'Privacy & Security', 
+            desc: 'Secure your StudyGenie data',
+            action: () => setActiveModal('privacy')
+        },
+        { 
+            icon: Settings, 
+            label: 'Account Settings', 
+            desc: 'Manage your profile and data',
+            action: () => setActiveModal('account')
+        },
     ];
 
     const stats = [
@@ -189,6 +223,71 @@ export const Profile = () => {
                     </div>
                 </div>
             </div>
+            <Modal isOpen={activeModal === 'notifications'} onClose={() => setActiveModal(null)} title="Notifications">
+                <div className="space-y-4">
+                    <div className="flex items-center justify-between p-4 bg-white/5 rounded-xl border border-white/10">
+                        <div>
+                            <p className="font-bold text-white">Email Alerts</p>
+                            <p className="text-xs text-white/50">Weekly progress reports</p>
+                        </div>
+                        <Toggle checked={emailAlerts} onChange={setEmailAlerts} />
+                    </div>
+                    <div className="flex items-center justify-between p-4 bg-white/5 rounded-xl border border-white/10">
+                        <div>
+                            <p className="font-bold text-white">Push Alerts</p>
+                            <p className="text-xs text-white/50">Instant app updates</p>
+                        </div>
+                        <Toggle checked={pushAlerts} onChange={setPushAlerts} />
+                    </div>
+                    <div className="flex items-center justify-between p-4 bg-white/5 rounded-xl border border-white/10">
+                        <div>
+                            <p className="font-bold text-white">Study Reminders</p>
+                            <p className="text-xs text-white/50">Daily nudges to keep your streak</p>
+                        </div>
+                        <Toggle checked={studyReminders} onChange={setStudyReminders} />
+                    </div>
+                </div>
+            </Modal>
+
+            <Modal isOpen={activeModal === 'privacy'} onClose={() => setActiveModal(null)} title="Privacy & Security">
+                <div className="space-y-4">
+                    <Button variant="secondary" className="w-full justify-start text-white border-white/10 bg-white/5 hover:bg-white/10" onClick={() => { alert('Password reset link sent to your email!'); setActiveModal(null); }}>
+                        <Lock size={18} className="mr-2" />
+                        Change Password
+                    </Button>
+                    <div className="flex items-center justify-between p-4 bg-white/5 rounded-xl border border-white/10 mt-4">
+                        <div>
+                            <p className="font-bold text-white">Data Sharing</p>
+                            <p className="text-xs text-white/50">Help improve AI models</p>
+                        </div>
+                        <Toggle checked={true} onChange={() => {}} />
+                    </div>
+                </div>
+            </Modal>
+
+            <Modal isOpen={activeModal === 'account'} onClose={() => setActiveModal(null)} title="Account Settings">
+                <div className="space-y-4">
+                    <div className="bg-white/5 p-4 rounded-xl border border-white/10 space-y-4">
+                        <div className="flex justify-between items-center border-b border-white/5 pb-3">
+                            <span className="text-white/50 text-sm font-semibold">User Type</span>
+                            <span className="text-white font-bold text-sm bg-blue-500/20 text-blue-400 px-3 py-1 rounded-full">{profileDetails?.userType || 'Not set'}</span>
+                        </div>
+                        <div className="flex justify-between items-center border-b border-white/5 pb-3">
+                            <span className="text-white/50 text-sm font-semibold">Academic Path</span>
+                            <span className="text-white font-bold text-sm bg-purple-500/20 text-purple-400 px-3 py-1 rounded-full">{profileDetails?.academicPath || 'Not set'}</span>
+                        </div>
+                        <div className="flex justify-between items-center border-b border-white/5 pb-3">
+                            <span className="text-white/50 text-sm font-semibold">Goals</span>
+                            <span className="text-white font-bold text-sm text-right max-w-[60%]">{profileDetails?.goals?.join(', ') || 'Not set'}</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                            <span className="text-white/50 text-sm font-semibold">Weak Subjects</span>
+                            <span className="text-white font-bold text-sm text-right max-w-[60%] text-red-400">{profileDetails?.weakSubjects?.join(', ') || 'Not set'}</span>
+                        </div>
+                    </div>
+                    <Button variant="primary" className="w-full font-bold" onClick={() => setActiveModal(null)}>Done</Button>
+                </div>
+            </Modal>
         </div>
     );
 };
