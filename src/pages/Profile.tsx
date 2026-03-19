@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { Card } from '../components/Card';
 import { Button } from '../components/Button';
 import { Modal } from '../components/Modal';
+import { useAuth } from '../components/AuthProvider';
 import { useStore } from '../store/useStore';
 import { supabase } from '../lib/supabase';
 import { useState } from 'react';
@@ -22,6 +23,7 @@ const Toggle = ({ checked, onChange }: { checked: boolean; onChange: (c: boolean
 );
 
 export const Profile = () => {
+    const { user } = useAuth();
     const { analytics, achievements, battleLog, savedNotes, messages, profileDetails } = useStore();
     const [isDarkMode, setIsDarkMode] = useState(true);
     const [activeModal, setActiveModal] = useState<'notifications' | 'privacy' | 'account' | null>(null);
@@ -77,7 +79,7 @@ export const Profile = () => {
             {/* Header / User Info */}
             <div className="flex flex-col sm:flex-row items-center sm:items-start gap-8">
                 <div className="h-32 w-32 rounded-3xl bg-gradient-to-br from-blue-500 to-blue-700 shadow-2xl flex items-center justify-center shrink-0 border-4 border-[var(--card-border)] relative rotate-3">
-                    <span className="text-white font-black text-5xl">S</span>
+                    <span className="text-white font-black text-5xl uppercase">{user?.email?.charAt(0) || 'S'}</span>
                     <motion.div 
                         initial={{ scale: 0 }}
                         animate={{ scale: 1 }}
@@ -88,10 +90,10 @@ export const Profile = () => {
                 </div>
                 
                 <div className="text-center sm:text-left flex-1 w-full pt-2">
-                    <h1 className="text-4xl font-black text-[var(--text-primary)] tracking-tight">Scholar Explorer</h1>
+                    <h1 className="text-4xl font-black text-[var(--text-primary)] tracking-tight capitalize">{user?.email?.split('@')[0] || 'Scholar Explorer'}</h1>
                     <p className="mt-1 font-medium flex items-center justify-center sm:justify-start gap-2" style={{ color: 'var(--text-secondary)' }}>
                         <Zap size={16} className="text-yellow-500" />
-                        Master Guardian • Member since 2026
+                        {profileDetails?.academicPath ? `${profileDetails.academicPath} Scholar` : 'Explorer'} • {profileDetails?.userType || 'Learner'}
                     </p>
                     
                     <div className="mt-6 max-w-md">
