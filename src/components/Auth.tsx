@@ -57,7 +57,7 @@ export const Auth = () => {
             style={{ backgroundImage: `url('/auth-bg.png')` }}
         >
             {/* Dark overlay to ensure crisp glassmorphism contrast */}
-            <div className="absolute inset-0 bg-[#0F172A]/30 backdrop-blur-[2px]"></div>
+            <div className="absolute inset-0 bg-[#0F172A]/60 backdrop-blur-[2px]"></div>
 
             {/* Background elements */}
             <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-500/20 rounded-full blur-[100px] pointer-events-none" />
@@ -76,11 +76,11 @@ export const Auth = () => {
                             <img src="/logo_mascot_clean.png" alt="StudyGenie Logo" className="w-full h-full object-contain mix-blend-screen scale-110" />
                         </div>
                     </div>
-                    <h1 className="text-4xl font-black tracking-tight mb-1">
+                    <h1 className="text-4xl font-black tracking-tight mb-1 drop-shadow-[0_4px_8px_rgba(0,0,0,0.8)]">
                         <span className="text-white">Study</span>
-                        <span className="text-[#3B82F6]">Genie</span>
+                        <span className="text-[#3B82F6] drop-shadow-[0_0_15px_rgba(59,130,246,0.5)]">Genie</span>
                     </h1>
-                    <p className="text-blue-200/60 font-medium">Your magical learning companion</p>
+                    <p className="text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] font-bold text-shadow-sm">Your magical learning companion</p>
                 </div>
 
                 {/* Form Card */}
