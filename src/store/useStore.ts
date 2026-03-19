@@ -33,6 +33,16 @@ export interface QuizTopic {
     questions?: Question[];
 }
 
+export interface UserProfileDetails {
+    userType?: string;
+    academicPath?: string;
+    specialization?: string;
+    subjects?: string[];
+    goals?: string[];
+    weakSubjects?: string[];
+    onboardingCompleted?: boolean;
+}
+
 interface AppState {
     messages: Message[];
     addMessage: (message: Omit<Message, 'id' | 'timestamp'>) => void;
@@ -67,6 +77,9 @@ interface AppState {
     showLevelUpModal: boolean;
     setShowLevelUpModal: (show: boolean) => void;
 
+    profileDetails: UserProfileDetails;
+    completeOnboarding: (data: UserProfileDetails) => Promise<void>;
+
     // Cloud Sync Actions
     loadProfile: (userId: string) => Promise<void>;
     syncProgress: () => Promise<void>;
@@ -90,6 +103,27 @@ export interface BattleRecord {
 }
 
 export const useStore = create<AppState>((set, get) => ({
+    profileDetails: {},
+    completeOnboarding: async (data) => {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+        
+        const updatePayload = {
+            user_type: data.userType,
+            academic_path: data.academicPath,
+            specialization: data.specialization,
+            subjects: data.subjects || [],
+            goals: data.goals || [],
+            weak_subjects: data.weakSubjects || [],
+            onboarding_completed: true,
+            updated_at: new Date().toISOString()
+        };
+        
+        await supabase.from('profiles').update(updatePayload).eq('id', user.id);
+        
+        set({ profileDetails: { ...data, onboardingCompleted: true } });
+    },
+
     messages: [
         {
             id: 'welcome-msg',
@@ -275,6 +309,15 @@ export const useStore = create<AppState>((set, get) => ({
                     streak: profile.current_streak || 0,
                     // Recalculate threshold based on level
                     xpToNextLevel: Math.floor(1000 * Math.pow(1.5, (profile.level || 1) - 1))
+                },
+                profileDetails: {
+                    userType: profile.user_type,
+                    academicPath: profile.academic_path,
+                    specialization: profile.specialization,
+                    subjects: profile.subjects,
+                    goals: profile.goals,
+                    weakSubjects: profile.weak_subjects,
+                    onboardingCompleted: profile.onboarding_completed
                 }
             }));
         }

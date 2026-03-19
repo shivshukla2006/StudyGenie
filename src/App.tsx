@@ -17,11 +17,24 @@ const Profile = lazy(() => import('./pages/Profile').then(m => ({ default: m.Pro
 const StudyBattles = lazy(() => import('./pages/StudyBattles').then(m => ({ default: m.StudyBattles })));
 const Notes = lazy(() => import('./pages/Notes').then(m => ({ default: m.Notes })));
 
+const Onboarding = lazy(() => import('./pages/Onboarding').then(m => ({ default: m.Onboarding })));
+
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { session } = useAuth();
 
   if (!session) {
     return <Navigate to="/auth" replace />;
+  }
+
+  return <>{children}</>;
+};
+
+const OnboardingGuard = ({ children }: { children: React.ReactNode }) => {
+  const profileDetails = useStore(state => state.profileDetails);
+  
+  // If explicitly false, redirect to onboarding (undefined means it's still loading)
+  if (profileDetails && profileDetails.onboardingCompleted === false) {
+    return <Navigate to="/onboarding" replace />;
   }
 
   return <>{children}</>;
@@ -41,25 +54,34 @@ function AppContent() {
     <Routes>
       <Route path="/" element={<Landing />} />
       <Route path="/auth" element={!session ? <Auth /> : <Navigate to="/dashboard" replace />} />
+      <Route path="/onboarding" element={
+        <ProtectedRoute>
+          <Suspense fallback={<div className="flex items-center justify-center p-12 text-sm text-[var(--text-secondary)]">Loading page...</div>}>
+            <Onboarding />
+          </Suspense>
+        </ProtectedRoute>
+      } />
       <Route path="/*" element={
         <ProtectedRoute>
-          <Layout>
-            <Suspense fallback={<div className="flex items-center justify-center p-12 text-sm text-[var(--text-secondary)]">Loading page...</div>}>
-              <Routes>
-                <Route path="/" element={<Navigate to="/dashboard" replace />} />
-                <Route path="/dashboard" element={<Dashboard />} />
-                <Route path="/chat" element={<Chat />} />
-                <Route path="/notes" element={<Notes />} />
-                <Route path="/quizzes" element={<Quizzes />} />
-                <Route path="/analytics" element={<Analytics />} />
-                <Route path="/battles" element={<StudyBattles />} />
-                <Route path="/profile" element={<Profile />} />
-                <Route path="/settings" element={<Profile />} />
-              </Routes>
-            </Suspense>
-            <PWAInstallPrompt />
-            <LevelUpModal />
-          </Layout>
+          <OnboardingGuard>
+            <Layout>
+              <Suspense fallback={<div className="flex items-center justify-center p-12 text-sm text-[var(--text-secondary)]">Loading page...</div>}>
+                <Routes>
+                  <Route path="/" element={<Navigate to="/dashboard" replace />} />
+                  <Route path="/dashboard" element={<Dashboard />} />
+                  <Route path="/chat" element={<Chat />} />
+                  <Route path="/notes" element={<Notes />} />
+                  <Route path="/quizzes" element={<Quizzes />} />
+                  <Route path="/analytics" element={<Analytics />} />
+                  <Route path="/battles" element={<StudyBattles />} />
+                  <Route path="/profile" element={<Profile />} />
+                  <Route path="/settings" element={<Profile />} />
+                </Routes>
+              </Suspense>
+              <PWAInstallPrompt />
+              <LevelUpModal />
+            </Layout>
+          </OnboardingGuard>
         </ProtectedRoute>
       } />
     </Routes>
