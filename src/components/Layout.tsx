@@ -15,7 +15,7 @@ export const Layout = ({ children }: { children: ReactNode }) => {
             className="flex flex-col h-[100dvh] w-full overflow-hidden transition-colors duration-300 bg-cover bg-center bg-no-repeat bg-fixed relative" 
             style={{ backgroundImage: `url('/auth-bg.png')`, color: 'var(--text-primary)' }}
         >
-            <div className="absolute inset-0 bg-[#0F172A]/60 backdrop-blur-[2px] pointer-events-none z-0" />
+            <div className="absolute inset-0 bg-[#F8FAFF]/95 dark:bg-[#0F172A]/60 backdrop-blur-[2px] pointer-events-none z-0 transition-colors duration-300" />
             <div className="flex flex-col h-full w-full relative z-10">
                 <Header toggleSidebar={() => setSidebarOpen(!sidebarOpen)} />
 
