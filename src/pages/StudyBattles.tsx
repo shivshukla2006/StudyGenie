@@ -6,6 +6,7 @@ import { Button } from '../components/Button';
 import { useStore } from '../store/useStore';
 import { supabase } from '../lib/supabase';
 import questionsData from '../data/questions.json';
+import { getWebSocketUrl } from '../config';
 
 export const StudyBattles = () => {
     const { addXP, addBattleRecord, analytics } = useStore();
@@ -29,7 +30,7 @@ export const StudyBattles = () => {
     useEffect(() => {
         if (battleState === 'playing' && currentUser) {
             const roomId = [currentUser.id, opponentName].sort().join('-');
-            const ws = new WebSocket(`ws://localhost:8000/ws/battle/${roomId}`);
+            const ws = new WebSocket(getWebSocketUrl(`/ws/battle/${roomId}`));
             socketRef.current = ws;
 
             ws.onmessage = (event) => {

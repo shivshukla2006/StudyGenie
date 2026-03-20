@@ -5,6 +5,7 @@ import { TextArea } from '../components/TextArea';
 import { useStore } from '../store/useStore';
 import { useState } from 'react';
 import { supabase } from '../lib/supabase';
+import { API_BASE_URL } from '../config';
 
 interface ProcessedData {
     summary: string;
@@ -43,7 +44,7 @@ export const Notes = () => {
             formData.append('user_id', user.id);
             
             const { data: { session } } = await supabase.auth.getSession();
-            const response = await fetch('http://localhost:8000/upload', {
+            const response = await fetch(`${API_BASE_URL}/upload`, {
                 method: 'POST',
                 body: formData,
                 headers: {
@@ -68,7 +69,7 @@ export const Notes = () => {
             // 2.5 Trigger Embeddings creation if text exists
             if (document_id && data.text_content) {
                 try {
-                    await fetch('http://localhost:8000/embed', {
+                    await fetch(`${API_BASE_URL}/embed`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
@@ -108,7 +109,7 @@ export const Notes = () => {
         setIsProcessing(true);
         setIsSaved(false);
         try {
-            const response = await fetch('http://localhost:8000/process-notes', {
+            const response = await fetch(`${API_BASE_URL}/process-notes`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ content: input })

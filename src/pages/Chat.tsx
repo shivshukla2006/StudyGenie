@@ -7,6 +7,7 @@ import { GenieMascot, type GeniePose } from '../components/GenieMascot';
 import { useStore } from '../store/useStore';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { API_BASE_URL } from '../config';
 
 export const Chat = () => {
     const [message, setMessage] = useState('');
@@ -127,7 +128,7 @@ export const Chat = () => {
             // Get all messages from store for context
             const allMessages = useStore.getState().messages;
 
-            const response = await fetch('http://localhost:8000/chat', {
+            const response = await fetch(`${API_BASE_URL}/chat`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({

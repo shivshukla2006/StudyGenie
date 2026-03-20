@@ -5,6 +5,7 @@ import { useStore } from '../store/useStore';
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { Link } from 'react-router-dom';
+import { API_BASE_URL } from '../config';
 
 export const Dashboard = () => {
     const analytics = useStore(state => state.analytics);
@@ -17,7 +18,7 @@ export const Dashboard = () => {
             if (user) {
                 try {
                     const { data: { session } } = await supabase.auth.getSession();
-                    const res = await fetch(`http://localhost:8000/analytics/weak-topics`, {
+                    const res = await fetch(`${API_BASE_URL}/analytics/weak-topics`, {
                         headers: {
                             'Authorization': `Bearer ${session?.access_token}`
                         }

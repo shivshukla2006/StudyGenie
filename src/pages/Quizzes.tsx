@@ -5,6 +5,7 @@ import { Input } from '../components/Input';
 import { useStore, type QuizTopic } from '../store/useStore';
 import { useState } from 'react';
 import { Modal } from '../components/Modal';
+import { API_BASE_URL } from '../config';
 
 export const Quizzes = () => {
     const topics = useStore(state => state.quizTopics);
@@ -33,7 +34,7 @@ export const Quizzes = () => {
         if (!genieTopic.trim()) return;
         setIsGenerating(true);
         try {
-            const response = await fetch('http://localhost:8000/generate-quiz', {
+            const response = await fetch(`${API_BASE_URL}/generate-quiz`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ topic: genieTopic, count: 5 })
